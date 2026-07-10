@@ -49,7 +49,7 @@ jobs:
       # Download this repository's files onto the machine (a fresh VM
       # starts empty — it doesn't have the code until this step).
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Download the real contents of Git-LFS files (3D models,
           # videos — see .gitattributes). Without this, checkout leaves
@@ -58,7 +58,7 @@ jobs:
 
       # Install Python on the machine and put it on the PATH.
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           # Pin the version so builds are reproducible and don't change
           # behaviour when GitHub updates its default Python.
@@ -73,7 +73,7 @@ jobs:
       # expects (a compressed archive), and hand it to GitHub so the
       # deploy job below can pick it up.
       - name: Upload dist/ as the Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           # The folder to publish — build.py's output.
           path: dist
@@ -94,4 +94,4 @@ jobs:
       # the live GitHub Pages site.
       - name: Deploy to GitHub Pages
         id: deployment # an id lets the `url:` line above read this step's output
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

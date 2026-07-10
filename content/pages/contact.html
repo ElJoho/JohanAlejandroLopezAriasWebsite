@@ -1,0 +1,37 @@
+---
+title: Contact — Johan Alejandro López Arias
+description: Get in touch with Johan Alejandro López Arias.
+slug: contact
+---
+<section>
+  <h1>Contact</h1>
+  <p>The fastest ways to reach me are GitHub, YouTube, or LinkedIn — links in the footer — or the form below.</p>
+
+  <!-- TODO: replace YOUR_WEB3FORMS_ACCESS_KEY with a real key from https://web3forms.com/ before launch -->
+  <form action="https://api.web3forms.com/submit" method="POST">
+    <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY">
+
+    <!-- Honeypot: real visitors never see or fill this in; bots that auto-fill every field do, so submissions with it non-empty are spam. -->
+    <div class="form-field hp-field" aria-hidden="true">
+      <label for="botcheck">Leave this field empty</label>
+      <input type="text" id="botcheck" name="botcheck" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="form-field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+
+    <div class="form-field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+
+    <div class="form-field">
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+    </div>
+
+    <button type="submit">Send</button>
+  </form>
+</section>

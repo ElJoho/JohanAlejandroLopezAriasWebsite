@@ -1,0 +1,97 @@
+# Build and deploy the site to GitHub Pages.
+#
+# Every push to `main` regenerates the whole site with build.py and
+# publishes the resulting dist/ folder. Publishing a new page is
+# therefore just: add a file under content/, commit, push.
+
+# The workflow's display name, shown in the repo's "Actions" tab.
+name: Deploy site
+
+# `on:` declares which events trigger this workflow.
+on:
+  # Run whenever commits are pushed...
+  push:
+    # ...but only to the main branch (pushes to other branches are ignored).
+    branches: [main]
+  # Also allow starting the workflow by hand with a button in the Actions
+  # tab — useful to re-deploy without making a new commit.
+  workflow_dispatch:
+
+# Permissions granted to the temporary credential (GITHUB_TOKEN) that the
+# workflow runs with. Least privilege: read the code, write to Pages.
+permissions:
+  # Needed by the checkout step to read the repository contents.
+  contents: read
+  # Needed by the deploy step to publish to GitHub Pages.
+  pages: write
+  # Needed by GitHub's deploy action to prove the deployment really comes
+  # from this workflow (OIDC identity token).
+  id-token: write
+
+# Concurrency control: if two pushes land close together, don't run two
+# deploys at once.
+concurrency:
+  # All runs of this workflow share one queue named "pages"...
+  group: pages
+  # ...and a newer run cancels an older one still in progress, so the
+  # live site always reflects the latest push.
+  cancel-in-progress: true
+
+# A workflow is made of jobs. Ours has two: `build` makes the site,
+# `deploy` publishes it. Each job runs on a fresh virtual machine.
+jobs:
+  build:
+    # The type of machine to run on: GitHub-hosted Ubuntu Linux.
+    runs-on: ubuntu-latest
+    # Steps run in order on that machine. `uses:` runs a pre-made action
+    # from GitHub's marketplace; `run:` executes a shell command.
+    steps:
+      # Download this repository's files onto the machine (a fresh VM
+      # starts empty — it doesn't have the code until this step).
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # Download the real contents of Git-LFS files (3D models,
+          # videos — see .gitattributes). Without this, checkout leaves
+          # tiny pointer files and the site would ship broken media.
+          lfs: true
+
+      # Install Python on the machine and put it on the PATH.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Pin the version so builds are reproducible and don't change
+          # behaviour when GitHub updates its default Python.
+          python-version: "3.12"
+
+      # Run our generator exactly like locally. build.py is stdlib-only,
+      # so there is nothing to pip-install first.
+      - name: Build the site
+        run: python build.py
+
+      # Package the dist/ folder in the special format GitHub Pages
+      # expects (a compressed archive), and hand it to GitHub so the
+      # deploy job below can pick it up.
+      - name: Upload dist/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # The folder to publish — build.py's output.
+          path: dist
+
+  deploy:
+    # Don't start until the build job finished successfully.
+    needs: build
+    runs-on: ubuntu-latest
+    # Tie this job to the repo's "github-pages" deployment environment.
+    # GitHub creates it automatically; it makes deploys show up in the
+    # repo's Deployments panel with a link to the live site.
+    environment:
+      name: github-pages
+      # After deploying, expose the live URL in the Actions UI.
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Take the artifact uploaded by the build job and publish it as
+      # the live GitHub Pages site.
+      - name: Deploy to GitHub Pages
+        id: deployment # an id lets the `url:` line above read this step's output
+        uses: actions/deploy-pages@v4

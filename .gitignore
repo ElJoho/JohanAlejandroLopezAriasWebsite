@@ -1,0 +1,29 @@
+# Generated site output — rebuilt by the GitHub Action on every push,
+# never committed.
+dist/
+
+# Claude Code — local AI-assistant files, kept out of the public repo.
+CLAUDE.md
+.claude/
+
+# Private planning notes (docs/ itself stays tracked — build.py needs
+# docs/taxonomies.md in the repo to validate tags).
+docs/portfolio-build-plan.md
+
+# Python bytecode caches (auto-created when running build.py)
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor / IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.tmp
+
+# OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini

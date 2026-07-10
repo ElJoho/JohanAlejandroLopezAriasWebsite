@@ -11,8 +11,7 @@ TEMPLATES = ROOT / "templates"
 STATIC = ROOT / "static"
 DIST = ROOT / "dist"
 
-# TODO: replace with the real domain once purchased (Phase 0, step 1).
-SITE_URL = "https://example.com"
+SITE_URL = "https://www.johanalejandrolopezarias.com"
 
 REQUIRED_FIELDS = ("title", "description", "slug")
 

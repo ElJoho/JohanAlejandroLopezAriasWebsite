@@ -134,6 +134,34 @@ main.wrap {
   color: var(--color-accent);
 }
 
+/* Language switcher: plain links, one per language in the registry */
+.lang-switcher ul {
+  list-style: none;
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+
+.lang-switcher a {
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.lang-switcher a:hover,
+.lang-switcher a:focus-visible {
+  color: var(--color-accent);
+}
+
+.lang-switcher a[aria-current="page"] {
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
 @media (min-width: 40rem) {
   .site-header__inner {
     flex-direction: row;
@@ -198,6 +226,16 @@ p {
 .lede {
   font-size: var(--text-lg);
   color: var(--color-text-muted);
+}
+
+/* Notice on fallback pages: content shown in its original language */
+.fallback-banner {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-alt);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 /* ---------------------------------------------------------------------
@@ -278,6 +316,20 @@ button {
 
 .card-description {
   margin: 0;
+}
+
+/* Badge on index cards whose item isn't translated into the page language */
+.lang-badge {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  padding: 0 var(--space-1);
+  margin-left: var(--space-2);
 }
 
 /* ---------------------------------------------------------------------

@@ -94,14 +94,125 @@ LANGUAGES = {
             "rss_link_title": "Articles — RSS",
             "rss_feed_title": "{site} — Articles",
             "rss_feed_description": "Articles by {site}.",
+            # i18n chrome
+            "lang_switcher_aria": "Language",
+            "fallback_banner": "This content isn't available in English yet, so it's shown in its original language.",
+        },
+    },
+    "es": {
+        "name": "Español",
+        "months": ("enero", "febrero", "marzo", "abril", "mayo", "junio",
+                   "julio", "agosto", "septiembre", "octubre", "noviembre",
+                   "diciembre"),
+        "date_fmt": "{day} de {month} de {year}",
+        "strings": {
+            # header / nav
+            "nav_aria": "Principal",
+            "nav_home": "Inicio",
+            "nav_projects": "Proyectos",
+            "nav_articles": "Artículos",
+            "nav_about": "Sobre mí",
+            "nav_contact": "Contacto",
+            "nav_search": "Buscar",
+            "search_placeholder": "Buscar…",
+            "search_aria": "Buscar proyectos y artículos",
+            # footer
+            "footer_copyright": "&copy; 2026 Johan Alejandro López Arias.",
+            # detail pages
+            "filed_under": "archivado en",
+            # section index pages (the lede doubles as the meta description)
+            "projects_title": "Proyectos",
+            "projects_lede": "Cosas que he construido en robótica, automatización y manufactura.",
+            "articles_title": "Artículos",
+            "articles_lede": "Escritura ocasional sobre ingeniería, herramientas y este mismo sitio.",
+            "empty_listing": "Aún no hay nada aquí — vuelve pronto.",
+            # tag pages
+            "discipline_lede": "Todo lo archivado en la disciplina {tag}.",
+            "tech_heading": "Etiqueta “{tag}”",
+            "tech_lede": "Proyectos y artículos con la etiqueta {tag}.",
+            # search page
+            "search_title": "Buscar",
+            "search_lede": "Encuentra proyectos y artículos por texto, por etiqueta o ambos.",
+            "search_description": "Busca proyectos y artículos por texto o filtra por etiqueta.",
+            "search_disciplines": "Disciplinas",
+            "search_tech": "Tecnologías",
+            "search_mode_legend": "Coincidencia de etiquetas",
+            "search_mode_or": "cualquier etiqueta seleccionada",
+            "search_mode_and": "todas las etiquetas seleccionadas",
+            # feeds
+            "rss_link_title": "Artículos — RSS",
+            "rss_feed_title": "{site} — Artículos",
+            "rss_feed_description": "Artículos de {site}.",
+            # i18n chrome
+            "lang_switcher_aria": "Idioma",
+            "fallback_banner": "Este contenido aún no está disponible en español, así que se muestra en su idioma original.",
+        },
+    },
+    "de": {
+        "name": "Deutsch",
+        "months": ("Januar", "Februar", "März", "April", "Mai", "Juni",
+                   "Juli", "August", "September", "Oktober", "November",
+                   "Dezember"),
+        "date_fmt": "{day}. {month} {year}",
+        "strings": {
+            # header / nav
+            "nav_aria": "Hauptnavigation",
+            "nav_home": "Start",
+            "nav_projects": "Projekte",
+            "nav_articles": "Artikel",
+            "nav_about": "Über mich",
+            "nav_contact": "Kontakt",
+            "nav_search": "Suche",
+            "search_placeholder": "Suchen…",
+            "search_aria": "Projekte und Artikel durchsuchen",
+            # footer
+            "footer_copyright": "&copy; 2026 Johan Alejandro López Arias.",
+            # detail pages
+            "filed_under": "abgelegt unter",
+            # section index pages (the lede doubles as the meta description)
+            "projects_title": "Projekte",
+            "projects_lede": "Dinge, die ich in Robotik, Automatisierung und Fertigung gebaut habe.",
+            "articles_title": "Artikel",
+            "articles_lede": "Gelegentliche Texte über Technik, Werkzeuge und diese Website selbst.",
+            "empty_listing": "Hier gibt es noch nichts — schau bald wieder vorbei.",
+            # tag pages
+            "discipline_lede": "Alles aus der Disziplin {tag}.",
+            "tech_heading": "Schlagwort „{tag}“",
+            "tech_lede": "Projekte und Artikel mit dem Schlagwort {tag}.",
+            # search page
+            "search_title": "Suche",
+            "search_lede": "Finde Projekte und Artikel über Text, Schlagwörter oder beides.",
+            "search_description": "Durchsuche Projekte und Artikel oder filtere nach Schlagwort.",
+            "search_disciplines": "Disziplinen",
+            "search_tech": "Technologien",
+            "search_mode_legend": "Schlagwort-Logik",
+            "search_mode_or": "beliebiges gewähltes Schlagwort",
+            "search_mode_and": "alle gewählten Schlagwörter",
+            # feeds
+            "rss_link_title": "Artikel — RSS",
+            "rss_feed_title": "{site} — Artikel",
+            "rss_feed_description": "Artikel von {site}.",
+            # i18n chrome
+            "lang_switcher_aria": "Sprache",
+            "fallback_banner": "Dieser Inhalt ist noch nicht auf Deutsch verfügbar und wird in der Originalsprache angezeigt.",
         },
     },
 }
 
 DEFAULT_LANG = next(code for code, cfg in LANGUAGES.items() if cfg.get("default"))
 
+
+def lang_root(lang):
+    """A language tree's URL root: '/' for the default language, '/es/'
+    etc. for the rest (docs/i18n-design.md URL scheme)."""
+    return "/" if lang == DEFAULT_LANG else f"/{lang}/"
+
 REQUIRED_PAGE_FIELDS = ("title", "description")
 REQUIRED_ITEM_FIELDS = REQUIRED_PAGE_FIELDS + ("date", "discipline", "tech")
+
+# Shared metadata lives only in en.html so it can never drift between
+# translations; a translation file redefining it is a build error.
+FORBIDDEN_TRANSLATION_FIELDS = ("date", "discipline", "tech")
 
 # The two sections that share the item pipeline, mapped to their type
 # templates. Their index titles and ledes live in the language registry
@@ -171,14 +282,37 @@ def display_date(d, lang):
                                   year=d.year)
 
 
-def tag_list_html(tech):
-    """A list of tech tags rendered as chips linking to their tag pages."""
+def tag_list_html(tech, root):
+    """A list of tech tags rendered as chips linking to their tag pages
+    in the current language's tree."""
     if not tech:
         return ""
     links = "\n".join(
-        f'      <li><a class="tag" href="/tags/{t}/">{t}</a></li>' for t in tech
+        f'      <li><a class="tag" href="{root}tags/{t}/">{t}</a></li>' for t in tech
     )
     return f'<ul class="tag-list">\n{links}\n    </ul>'
+
+
+def switcher_html(variants, lang):
+    """The header language switcher: EN | ES | DE, each a plain link to
+    this same page in that language — which always exists, because pages
+    without a translation are generated as fallbacks."""
+    links = "".join(
+        f'<li><a href="{variants[code]}" lang="{code}" hreflang="{code}"'
+        + (' aria-current="page"' if code == lang else "")
+        + f">{code.upper()}</a></li>"
+        for code in LANGUAGES)
+    aria = LANGUAGES[lang]["strings"]["lang_switcher_aria"]
+    return f'<nav class="lang-switcher" aria-label="{aria}"><ul>{links}</ul></nav>'
+
+
+def fallback_body(body, lang):
+    """Body for a page not translated into `lang`: a banner in the
+    visitor's language on top, the original body underneath keeping its
+    own lang attribute for accessibility."""
+    banner = LANGUAGES[lang]["strings"]["fallback_banner"]
+    return (f'<p class="fallback-banner">{banner}</p>\n'
+            f'<div lang="{DEFAULT_LANG}">\n{body}\n</div>')
 
 
 def bundle_sources(folder):
@@ -200,13 +334,75 @@ def bundle_sources(folder):
         yield bundle.name, source
 
 
-def load_items(section, vocab):
-    """Read one section's content bundles, validating frontmatter as we go."""
-    items = []
-    for slug, source in bundle_sources(CONTENT / section):
+def load_bundle(bundle):
+    """Read every <lang>.html in a bundle -> {lang: fields + "body"}.
+
+    The filename must be a registry code. Translations carry only the
+    localized fields (title, description, body); everything else belongs
+    to en.html alone.
+    """
+    translations = {}
+    for source in sorted(bundle.glob("*.html")):
+        code = source.stem
+        if code not in LANGUAGES:
+            fail(f"{source}: '{code}.html' is not a language in the registry")
         fields, body = parse_frontmatter(source.read_text(encoding="utf-8"))
         if "slug" in fields:
             fail(f"{source}: drop the 'slug' field — the bundle folder name is the slug")
+        if code != DEFAULT_LANG:
+            banned = [f for f in FORBIDDEN_TRANSLATION_FIELDS if f in fields]
+            if banned:
+                fail(f"{source}: {', '.join(banned)} belong(s) only in en.html")
+        missing = [f for f in REQUIRED_PAGE_FIELDS if not fields.get(f)]
+        if missing:
+            fail(f"{source}: missing frontmatter field(s): {', '.join(missing)}")
+        translations[code] = {**fields, "body": body}
+    return translations
+
+
+def bundle_assets(bundle):
+    """A bundle's co-located asset files: everything in it, recursively,
+    except the top-level <lang>.html translations and dotfiles."""
+    return sorted(
+        p for p in bundle.rglob("*")
+        if p.is_file() and not p.name.startswith(".")
+        and not (p.parent == bundle and p.suffix == ".html"))
+
+
+def copy_bundle_assets(bundle, dest_dir):
+    """Copy a bundle's assets into one language's output folder. Every
+    language gets a full copy so asset paths are identical in all trees
+    (duplicated bytes in dist/ only — accepted at current scale)."""
+    for asset in bundle_assets(bundle):
+        dest = dest_dir / asset.relative_to(bundle)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(asset, dest)
+
+
+def load_pages():
+    """Read the fixed-page bundles. Their output is a flat file (about.html),
+    where a bundle asset's relative path would not resolve — so fixed pages
+    may not carry assets; media belongs in projects/articles or static/."""
+    pages = []
+    for slug, source in bundle_sources(CONTENT / "pages"):
+        if bundle_assets(source.parent):
+            fail(f"{source.parent}: fixed-page bundles can't hold assets"
+                 " (their output is a flat .html file)")
+        pages.append({"slug": slug, "i18n": load_bundle(source.parent)})
+    return pages
+
+
+def load_items(section, vocab):
+    """Read one section's content bundles, validating frontmatter as we go.
+
+    Shared metadata (date, discipline, tech) is read from en.html only.
+    The top-level title/description/body stay the English ones (the search
+    index reads those for now); translations live under item["i18n"].
+    """
+    items = []
+    for slug, source in bundle_sources(CONTENT / section):
+        i18n = load_bundle(source.parent)
+        fields, body = i18n[DEFAULT_LANG], i18n[DEFAULT_LANG]["body"]
 
         # `tech` must be present but may be empty; everything else needs a value.
         missing = [
@@ -233,32 +429,42 @@ def load_items(section, vocab):
         items.append({
             **fields,
             "slug": slug,
+            "section": section,
             "tech": tech,
             "when": when,
             "url": f"/{section}/{slug}/",
             "body": body,
+            "i18n": i18n,
+            "bundle": source.parent,
         })
 
     items.sort(key=lambda i: i["when"], reverse=True)
     return items
 
 
-def card_html(card_template, item, lang):
+def card_html(card_template, item, lang, root):
+    """One index card. Untranslated items show their original title and
+    description plus a small language badge — the fallback-listing policy
+    (docs/i18n-design.md): every language's index lists everything."""
+    txt = item["i18n"].get(lang) or item["i18n"][DEFAULT_LANG]
+    badge = ("" if lang in item["i18n"]
+             else f' <span class="lang-badge">{DEFAULT_LANG.upper()}</span>')
     return render(card_template, {
-        "url": item["url"],
-        "title": item["title"],
+        "url": f"{root}{item['section']}/{item['slug']}/",
+        "title": txt["title"],
         "date": item["date"],
         "date_display": display_date(item["when"], lang),
         "discipline": item["discipline"],
-        "description": item["description"],
-        "tech_list": tag_list_html(item["tech"]),
+        "description": txt["description"],
+        "tech_list": tag_list_html(item["tech"], root),
+        "lang_badge": badge,
     })
 
 
-def listing_body(heading, lede, items, card_template, lang):
+def listing_body(heading, lede, items, card_template, lang, root):
     """Shared body for index pages and tag pages: heading + card list."""
     if items:
-        cards = "\n".join(card_html(card_template, i, lang) for i in items)
+        cards = "\n".join(card_html(card_template, i, lang, root) for i in items)
         cards_block = f'<ul class="card-grid">\n{cards}\n</ul>'
     else:
         cards_block = f'<p>{LANGUAGES[lang]["strings"]["empty_listing"]}</p>'
@@ -289,34 +495,51 @@ def copy_static():
 
 
 def sitemap_xml(entries):
+    """entries: (absolute URL, lastmod or None, {lang: absolute URL}).
+
+    Only genuine translations get here (fallback pages are excluded at
+    emit time); each URL carries its hreflang set plus x-default when the
+    page exists in more than one language (docs/i18n-design.md SEO rules).
+    """
     urls = []
-    for url, lastmod in entries:
+    for url, lastmod, alternates in entries:
         entry = f"  <url>\n    <loc>{escape(url)}</loc>\n"
         if lastmod:
             entry += f"    <lastmod>{lastmod}</lastmod>\n"
+        if len(alternates) > 1:
+            for code, href in sorted(alternates.items()):
+                entry += ('    <xhtml:link rel="alternate"'
+                          f' hreflang="{code}" href="{escape(href)}"/>\n')
+            entry += ('    <xhtml:link rel="alternate" hreflang="x-default"'
+                      f' href="{escape(alternates[DEFAULT_LANG])}"/>\n')
         urls.append(entry + "  </url>")
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
+        '        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
         + "\n".join(urls)
         + "\n</urlset>\n"
     )
 
 
 def rss_xml(articles, lang):
+    """One feed per language, holding only that language's genuine
+    translations — the caller filters."""
     S = LANGUAGES[lang]["strings"]
+    root = lang_root(lang)
     items_xml = []
     for a in articles:
-        url = f"{SITE_URL}{a['url']}"
+        txt = a["i18n"][lang]
+        url = f"{SITE_URL}{root}articles/{a['slug']}/"
         published = format_datetime(
             datetime(a["when"].year, a["when"].month, a["when"].day, tzinfo=timezone.utc)
         )
         items_xml.append(
             "    <item>\n"
-            f"      <title>{escape(a['title'])}</title>\n"
+            f"      <title>{escape(txt['title'])}</title>\n"
             f"      <link>{url}</link>\n"
             f"      <guid>{url}</guid>\n"
-            f"      <description>{escape(a['description'])}</description>\n"
+            f"      <description>{escape(txt['description'])}</description>\n"
             f"      <pubDate>{published}</pubDate>\n"
             "    </item>"
         )
@@ -325,9 +548,9 @@ def rss_xml(articles, lang):
         '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
         "  <channel>\n"
         f"    <title>{escape(S['rss_feed_title'].format(site=SITE_NAME))}</title>\n"
-        f"    <link>{SITE_URL}/articles/</link>\n"
+        f"    <link>{SITE_URL}{root}articles/</link>\n"
         f"    <description>{escape(S['rss_feed_description'].format(site=SITE_NAME))}</description>\n"
-        f'    <atom:link href="{SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>\n'
+        f'    <atom:link href="{SITE_URL}{root}feed.xml" rel="self" type="application/rss+xml"/>\n'
         + "\n".join(items_xml)
         + "\n  </channel>\n</rss>\n"
     )
@@ -449,137 +672,198 @@ def build():
     DIST.mkdir(parents=True)
 
     vocab = load_taxonomies()
-    lang = DEFAULT_LANG  # per-language output trees land in the next i18n step
-    S = LANGUAGES[lang]["strings"]
-    base = localize((TEMPLATES / "base.html").read_text(encoding="utf-8"), lang)
+    base_t = (TEMPLATES / "base.html").read_text(encoding="utf-8")
     # The header carries the search box, so the partial slots in here once
     # rather than on every page render.
-    header = localize(render(
+    header_t = render(
         (TEMPLATES / "partials" / "header.html").read_text(encoding="utf-8"),
         {"search": (TEMPLATES / "partials" / "search.html").read_text(encoding="utf-8")},
-    ), lang)
-    footer = localize((TEMPLATES / "partials" / "footer.html").read_text(encoding="utf-8"), lang)
+    )
+    footer_t = (TEMPLATES / "partials" / "footer.html").read_text(encoding="utf-8")
     card_template = (TEMPLATES / "partials" / "card.html").read_text(encoding="utf-8")
+    type_templates_t = {
+        section: (TEMPLATES / name).read_text(encoding="utf-8")
+        for section, name in SECTIONS.items()
+    }
 
     # Static goes first so every page can be rewritten to the hashed names.
     asset_map = copy_static()
 
+    # Content loads once; the language loop below only renders it.
+    items = {section: load_items(section, vocab) for section in SECTIONS}
+    pages = load_pages()
+    everything = sorted(items["projects"] + items["articles"],
+                        key=lambda i: i["when"], reverse=True)
+    disciplines = sorted({i["discipline"] for i in everything})
+    tech_tags = sorted({t for i in everything for t in i["tech"]})
+
     written = {}          # dist-relative path -> final HTML, for the link check
-    sitemap_entries = []  # (absolute URL, lastmod or None)
+    sitemap_entries = []  # (absolute URL, lastmod or None, {lang: absolute URL})
 
     def page_url(rel_path):
         # foo/index.html is served at foo/ — keep URLs directory-style.
-        if rel_path == "index.html":
-            return f"{SITE_URL}/"
-        if rel_path.endswith("/index.html"):
-            return f"{SITE_URL}/{rel_path[:-len('index.html')]}"
+        if rel_path.endswith("index.html"):
+            rel_path = rel_path[: -len("index.html")]
         return f"{SITE_URL}/{rel_path}"
 
-    def emit(rel_path, *, title, description, content, lastmod=None):
-        html = render(base, {
-            "title": title,
-            "description": description,
-            "canonical_url": page_url(rel_path),
-            "og_image": f"{SITE_URL}/static/images/og-default.png",
-            "lang": lang,
-            "header": header,
-            "content": content,
-            "footer": footer,
-        })
-        for plain, hashed in asset_map.items():
-            html = html.replace(plain, hashed)
-        # A leftover {{s.…}} means a template references a string key the
-        # registry doesn't define — fail rather than ship it to visitors.
-        if "{{s." in html:
-            fail(f"{rel_path}: unresolved chrome-string placeholder")
-        out = DIST / rel_path
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(html, encoding="utf-8")
-        written[rel_path] = html
-        if rel_path != "404.html":  # error page has no place in a sitemap
-            sitemap_entries.append((page_url(rel_path), lastmod))
-        print(f"wrote dist/{rel_path}")
+    # ---- one full page tree per language (docs/i18n-design.md) -----------
+    for lang in LANGUAGES:
+        root = lang_root(lang)
+        prefix = root.lstrip("/")  # "" for the default language at the site root
+        S = LANGUAGES[lang]["strings"]
+        base = localize(base_t, lang)
+        header = localize(render(header_t, {"root": root}), lang)
+        footer = localize(footer_t, lang)
 
-    # ---- fixed pages ----------------------------------------------------
-    for slug, source in bundle_sources(CONTENT / "pages"):
-        fields, body = parse_frontmatter(source.read_text(encoding="utf-8"))
-        if "slug" in fields:
-            fail(f"{source}: drop the 'slug' field — the bundle folder name is the slug")
-        missing = [f for f in REQUIRED_PAGE_FIELDS if not fields.get(f)]
-        if missing:
-            fail(f"{source} is missing frontmatter field(s): {', '.join(missing)}")
-        emit(f"{slug}.html",
-             title=fields["title"], description=fields["description"], content=body)
+        def emit(rel_path, *, title, description, content, variants,
+                 genuine, original=None, lastmod=None):
+            """Write one page of this language's tree.
 
-    # ---- projects and articles -------------------------------------------
-    items = {section: load_items(section, vocab) for section in SECTIONS}
-    for section, template_name in SECTIONS.items():
-        type_template = localize(
-            (TEMPLATES / template_name).read_text(encoding="utf-8"), lang)
-        for item in items[section]:
-            content = render(type_template, {
-                "title": item["title"],
-                "date": item["date"],
-                "date_display": display_date(item["when"], lang),
-                "discipline": item["discipline"],
-                "discipline_url": f"/discipline/{item['discipline']}/",
-                "tech_list": tag_list_html(item["tech"]),
-                "content": item["body"],
+            variants: {lang: root-relative URL} of this page in every
+            language — feeds the switcher. genuine: languages with a real
+            translation — feeds hreflang (only emitted when there is more
+            than one, plus x-default -> English). original: root-relative
+            URL of the source-language page when this page is a fallback;
+            it then gets canonical -> original + noindex and stays out of
+            the sitemap (docs/i18n-design.md SEO rules).
+            """
+            url = page_url(rel_path)
+            if original is None:
+                alternates = {c: f"{SITE_URL}{variants[c]}" for c in genuine}
+                head_lines = ""
+                if len(alternates) > 1:
+                    head_lines = "\n".join(
+                        f'  <link rel="alternate" hreflang="{c}" href="{u}">'
+                        for c, u in sorted(alternates.items()))
+                    head_lines += ('\n  <link rel="alternate" hreflang="x-default"'
+                                   f' href="{alternates[DEFAULT_LANG]}">')
+                canonical = url
+            else:
+                head_lines = '  <meta name="robots" content="noindex">'
+                canonical = f"{SITE_URL}{original}"
+            html = render(base, {
+                "title": title,
+                "description": description,
+                "canonical_url": canonical,
+                "alternates": head_lines,
+                "og_image": f"{SITE_URL}/static/images/og-default.png",
+                "lang": lang,
+                "feed_url": f"{root}feed.xml",
+                "header": header.replace("{{switcher}}",
+                                         switcher_html(variants, lang)),
+                "content": content,
+                "footer": footer,
             })
-            emit(f"{section}/{item['slug']}/index.html",
-                 title=f"{item['title']} — {SITE_NAME}",
-                 description=item["description"],
-                 content=content, lastmod=item["date"])
+            for plain, hashed in asset_map.items():
+                html = html.replace(plain, hashed)
+            # A leftover {{s.…}} means a template references a string key the
+            # registry doesn't define — fail rather than ship it to visitors.
+            if "{{s." in html:
+                fail(f"{rel_path}: unresolved chrome-string placeholder")
+            out = DIST / rel_path
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(html, encoding="utf-8")
+            written[rel_path] = html
+            # Sitemap: genuine translations only; the 404 page has no place
+            # there in any language.
+            if original is None and not rel_path.endswith("404.html"):
+                sitemap_entries.append((url, lastmod, alternates))
+            print(f"wrote dist/{rel_path}")
 
-        index_title, lede = S[f"{section}_title"], S[f"{section}_lede"]
-        emit(f"{section}/index.html",
-             title=f"{index_title} — {SITE_NAME}",
-             description=lede,
-             content=listing_body(index_title, lede,
-                                  items[section], card_template, lang))
+        # ---- fixed pages --------------------------------------------------
+        for page in pages:
+            txt = page["i18n"].get(lang) or page["i18n"][DEFAULT_LANG]
+            variants = {c: f"{lang_root(c)}{page['slug']}.html" for c in LANGUAGES}
+            body, original = txt["body"], None
+            if lang not in page["i18n"]:
+                body = fallback_body(body, lang)
+                original = variants[DEFAULT_LANG]
+            emit(f"{prefix}{page['slug']}.html",
+                 title=txt["title"], description=txt["description"],
+                 content=body, variants=variants,
+                 genuine=set(page["i18n"]), original=original)
 
-    # ---- tag pages (only for tags actually in use) -------------------------
-    everything = sorted(items["projects"] + items["articles"],
-                        key=lambda i: i["when"], reverse=True)
+        # ---- projects and articles ----------------------------------------
+        for section, template_raw in type_templates_t.items():
+            type_template = localize(template_raw, lang)
+            for item in items[section]:
+                txt = item["i18n"].get(lang) or item["i18n"][DEFAULT_LANG]
+                variants = {c: f"{lang_root(c)}{section}/{item['slug']}/"
+                            for c in LANGUAGES}
+                body, original = txt["body"], None
+                if lang not in item["i18n"]:
+                    body = fallback_body(body, lang)
+                    original = variants[DEFAULT_LANG]
+                content = render(type_template, {
+                    "title": txt["title"],
+                    "date": item["date"],
+                    "date_display": display_date(item["when"], lang),
+                    "discipline": item["discipline"],
+                    "discipline_url": f"{root}discipline/{item['discipline']}/",
+                    "tech_list": tag_list_html(item["tech"], root),
+                    "content": body,
+                })
+                copy_bundle_assets(item["bundle"],
+                                   DIST / f"{prefix}{section}" / item["slug"])
+                emit(f"{prefix}{section}/{item['slug']}/index.html",
+                     title=f"{txt['title']} — {SITE_NAME}",
+                     description=txt["description"],
+                     content=content, variants=variants,
+                     genuine=set(item["i18n"]), original=original,
+                     lastmod=item["date"])
 
-    for d in sorted({i["discipline"] for i in everything}):
-        tagged = [i for i in everything if i["discipline"] == d]
-        lede = S["discipline_lede"].format(tag=d)
-        emit(f"discipline/{d}/index.html",
-             title=f"{d.capitalize()} — {SITE_NAME}", description=lede,
-             content=listing_body(d.capitalize(), lede, tagged,
-                                  card_template, lang))
+            index_title, lede = S[f"{section}_title"], S[f"{section}_lede"]
+            emit(f"{prefix}{section}/index.html",
+                 title=f"{index_title} — {SITE_NAME}",
+                 description=lede,
+                 content=listing_body(index_title, lede, items[section],
+                                      card_template, lang, root),
+                 variants={c: f"{lang_root(c)}{section}/" for c in LANGUAGES},
+                 genuine=set(LANGUAGES))
 
-    for t in sorted({t for i in everything for t in i["tech"]}):
-        tagged = [i for i in everything if t in i["tech"]]
-        lede = S["tech_lede"].format(tag=t)
-        emit(f"tags/{t}/index.html",
-             title=f"{t} — {SITE_NAME}", description=lede,
-             content=listing_body(S["tech_heading"].format(tag=t), lede,
-                                  tagged, card_template, lang))
+        # ---- tag pages (only for tags actually in use) ----------------------
+        for d in disciplines:
+            tagged = [i for i in everything if i["discipline"] == d]
+            lede = S["discipline_lede"].format(tag=d)
+            emit(f"{prefix}discipline/{d}/index.html",
+                 title=f"{d.capitalize()} — {SITE_NAME}", description=lede,
+                 content=listing_body(d.capitalize(), lede, tagged,
+                                      card_template, lang, root),
+                 variants={c: f"{lang_root(c)}discipline/{d}/" for c in LANGUAGES},
+                 genuine=set(LANGUAGES))
 
-    # ---- search page --------------------------------------------------------
-    # The chips are real links to the tag pages, so /search/ works without
-    # JS; <search-page> (static/js/search.js) upgrades them to filter
-    # toggles with AND/OR matching and keeps the URL shareable.
-    def tag_chips(kind, tags, prefix):
-        return "\n".join(
-            f'      <li><a class="tag" data-kind="{kind}" data-tag="{t}"'
-            f' href="{prefix}{t}/">{t}</a></li>'
-            for t in tags)
+        for t in tech_tags:
+            tagged = [i for i in everything if t in i["tech"]]
+            lede = S["tech_lede"].format(tag=t)
+            emit(f"{prefix}tags/{t}/index.html",
+                 title=f"{t} — {SITE_NAME}", description=lede,
+                 content=listing_body(S["tech_heading"].format(tag=t), lede,
+                                      tagged, card_template, lang, root),
+                 variants={c: f"{lang_root(c)}tags/{t}/" for c in LANGUAGES},
+                 genuine=set(LANGUAGES))
 
-    search_content = f"""<h1>{S["search_title"]}</h1>
+        # ---- search page ----------------------------------------------------
+        # The chips are real links to this language's tag pages, so /search/
+        # works without JS; <search-page> (static/js/search.js) upgrades them
+        # to filter toggles with AND/OR matching and keeps the URL shareable.
+        def tag_chips(kind, tags, url_prefix):
+            return "\n".join(
+                f'      <li><a class="tag" data-kind="{kind}" data-tag="{t}"'
+                f' href="{url_prefix}{t}/">{t}</a></li>'
+                for t in tags)
+
+        search_content = f"""<h1>{S["search_title"]}</h1>
 <p class="lede">{S["search_lede"]}</p>
 <search-page>
   <input type="search" placeholder="{S["search_placeholder"]}" aria-label="{S["search_aria"]}" autocomplete="off">
   <div class="search-filters">
     <span class="search-browse-label">{S["search_disciplines"]}</span>
     <ul class="search-tag-group">
-{tag_chips("discipline", sorted({i["discipline"] for i in everything}), "/discipline/")}
+{tag_chips("discipline", disciplines, f"{root}discipline/")}
     </ul>
     <span class="search-browse-label">{S["search_tech"]}</span>
     <ul class="search-tag-group">
-{tag_chips("tech", sorted({t for i in everything for t in i["tech"]}), "/tags/")}
+{tag_chips("tech", tech_tags, f"{root}tags/")}
     </ul>
     <fieldset class="search-mode">
       <legend>{S["search_mode_legend"]}</legend>
@@ -590,22 +874,30 @@ def build():
   <p class="search-count" aria-live="polite"></p>
   <ul class="search-results search-results--page"></ul>
 </search-page>"""
-    emit("search/index.html",
-         title=f"{S['search_title']} — {SITE_NAME}",
-         description=S["search_description"],
-         content=search_content)
+        emit(f"{prefix}search/index.html",
+             title=f"{S['search_title']} — {SITE_NAME}",
+             description=S["search_description"],
+             content=search_content,
+             variants={c: f"{lang_root(c)}search/" for c in LANGUAGES},
+             genuine=set(LANGUAGES))
+
+        # ---- RSS: one feed per language, genuine translations only ---------
+        lang_articles = [a for a in items["articles"] if lang in a["i18n"]]
+        (DIST / f"{prefix}feed.xml").write_text(rss_xml(lang_articles, lang),
+                                                encoding="utf-8")
+        print(f"wrote dist/{prefix}feed.xml")
 
     # ---- search index -------------------------------------------------------
+    # Still a single English index; per-language indexes (and the matching
+    # search.js changes) are the next i18n step.
     (DIST / "search-index.json").write_text(
         json.dumps(build_search_index(items), separators=(",", ":")),
         encoding="utf-8")
     print("wrote dist/search-index.json")
 
-    # ---- sitemap and RSS ----------------------------------------------------
+    # ---- sitemap (genuine translations only, with hreflang sets) -----------
     (DIST / "sitemap.xml").write_text(sitemap_xml(sitemap_entries), encoding="utf-8")
     print("wrote dist/sitemap.xml")
-    (DIST / "feed.xml").write_text(rss_xml(items["articles"], lang), encoding="utf-8")
-    print("wrote dist/feed.xml")
 
     check_internal_links(written)
     print(f"OK: {len(written)} pages, all internal links resolve")

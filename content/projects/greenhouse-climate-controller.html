@@ -1,0 +1,25 @@
+---
+title: Greenhouse Climate Controller
+description: Placeholder write-up — an ESP32-based controller that automates ventilation, irrigation, and logging for a small greenhouse.
+slug: greenhouse-climate-controller
+date: 2026-03-02
+discipline: automation
+tech: esp32, python
+---
+<!-- PLACEHOLDER — replace with a real project write-up in Phase 3. -->
+<section>
+  <h2>Context</h2>
+  <p>A small backyard greenhouse was losing seedlings to temperature swings. This controller reads temperature and humidity, drives a vent servo and an irrigation valve, and logs everything for later analysis.</p>
+
+  <h2>My role</h2>
+  <p>Designed the control logic, wired the enclosure, and wrote the firmware and the logging pipeline.</p>
+
+  <h2>Constraints &amp; tradeoffs</h2>
+  <p>No mains power near the greenhouse, so the whole system runs from a small solar panel and battery — which ruled out Wi-Fi polling every few seconds in favor of batched uploads.</p>
+
+  <h2>Approach</h2>
+  <p>An ESP32 samples sensors on a deep-sleep duty cycle and applies hysteresis thresholds for the vent and valve. A Python script on a home server ingests the batched logs and produces daily plots.</p>
+
+  <h2>Result</h2>
+  <p>Held the target temperature band through a full growing season. Placeholder metrics — to be replaced with real ones.</p>
+</section>

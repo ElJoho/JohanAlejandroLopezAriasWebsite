@@ -1,0 +1,25 @@
+---
+title: Vision-Based Sorting Conveyor
+description: Placeholder write-up — a conveyor demo that classifies parts by color and shape with OpenCV and diverts them with a PLC-driven gate.
+slug: vision-sorting-conveyor
+date: 2026-01-15
+discipline: automation
+tech: opencv, python, raspberry-pi, plc
+---
+<!-- PLACEHOLDER — replace with a real project write-up in Phase 3. -->
+<section>
+  <h2>Context</h2>
+  <p>A benchtop demonstration line: parts ride a conveyor past a camera, get classified by color and outline, and a pneumatic gate diverts each part into the right bin.</p>
+
+  <h2>My role</h2>
+  <p>Built the vision pipeline and the handshake between the vision computer and the PLC controlling the conveyor and gate.</p>
+
+  <h2>Constraints &amp; tradeoffs</h2>
+  <p>Classification runs classical OpenCV (color thresholds plus contour features) rather than a neural network — the part set is small and controlled, and deterministic thresholds are easier to debug on the line than a model.</p>
+
+  <h2>Approach</h2>
+  <p>A Raspberry Pi runs the OpenCV pipeline and signals the PLC over discrete I/O; the PLC owns all motion and timing so a vision hiccup can never leave the gate in an unsafe state.</p>
+
+  <h2>Result</h2>
+  <p>Sorts the demo part set reliably at conveyor speed. Placeholder metrics — to be replaced with real ones.</p>
+</section>

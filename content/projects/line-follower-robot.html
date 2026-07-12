@@ -1,0 +1,25 @@
+---
+title: Line-Following Robot with Obstacle Avoidance
+description: Placeholder write-up — a differential-drive line follower that detours around obstacles and rejoins the track.
+slug: line-follower-robot
+date: 2026-05-14
+discipline: robotics
+tech: arduino, cpp, 3d-printing
+---
+<!-- PLACEHOLDER — replace with a real project write-up in Phase 3. -->
+<section>
+  <h2>Context</h2>
+  <p>A differential-drive robot that follows a taped line using an array of infrared reflectance sensors, and when an obstacle appears on the track, drives around it and reacquires the line on the far side.</p>
+
+  <h2>My role</h2>
+  <p>Sole builder: chassis design, electronics, and firmware.</p>
+
+  <h2>Constraints &amp; tradeoffs</h2>
+  <p>Budget capped the sensor count at five, which limits how sharp a curve the controller can track at speed. A simple PD loop was chosen over PID because the integral term added windup problems on long straights without improving cornering.</p>
+
+  <h2>Approach</h2>
+  <p>3D-printed chassis, an Arduino Nano running a PD line-tracking loop in C++, and an ultrasonic sensor triggering a fixed detour maneuver state machine.</p>
+
+  <h2>Result</h2>
+  <p>Completes a 12 m test track with two obstacles reliably. Placeholder metrics — to be replaced with real ones.</p>
+</section>

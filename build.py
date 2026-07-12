@@ -16,9 +16,12 @@ listed in docs/taxonomies.md, and broken internal links.
 """
 
 import hashlib
+import html
+import json
 import re
 import shutil
 import sys
+import unicodedata
 from datetime import date, datetime, timezone
 from email.utils import format_datetime
 from pathlib import Path
@@ -169,6 +172,7 @@ def card_html(card_template, item):
         "date_display": display_date(item["when"]),
         "discipline": item["discipline"],
         "description": item["description"],
+        "tech_list": tag_list_html(item["tech"]),
     })
 
 
@@ -249,6 +253,94 @@ def rss_xml(articles):
     )
 
 
+# ---------------------------------------------------------------------------
+# Search: build-time half of the site's own search engine. This emits
+# search-index.json (inverted index + doc metadata); static/js/search.js
+# fetches it and ranks matches with BM25 entirely client-side.
+# ---------------------------------------------------------------------------
+
+# Stop-words for both site languages (a Spanish version may land under /es/
+# later, and Spanish words already appear in names/titles). Spanish entries
+# are listed accent-stripped because tokenize() removes diacritics before
+# this filter runs.
+STOPWORDS = {
+    # English
+    "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from",
+    "has", "have", "in", "is", "it", "its", "of", "on", "or", "that", "the",
+    "this", "to", "was", "were", "will", "with",
+    # Spanish (accent-stripped)
+    "al", "como", "con", "de", "del", "el", "en", "es", "esta", "la", "las",
+    "lo", "los", "mas", "para", "pero", "por", "que", "se", "sin", "sobre",
+    "su", "sus", "un", "una", "uno", "y", "ya",
+}
+
+TOKEN_SPLIT_RE = re.compile(r"[^a-z0-9]+")
+TAG_STRIP_RE = re.compile(r"<[^>]+>")
+
+
+def tokenize(text):
+    """Lowercase, strip accents, split on non-alphanumerics, drop stop-words,
+    and crudely singularize (trailing 's', so 'motors' matches 'motor' —
+    a real English stemmer would mangle the Spanish that shows up here).
+
+    MUST stay in step with tokenize() in static/js/search.js, or queries
+    won't match the index. Stop-words are the one exception: the client
+    skips that filter because a stop-word query term simply isn't in the
+    index and scores nothing.
+    """
+    decomposed = unicodedata.normalize("NFD", text.lower())
+    stripped = "".join(c for c in decomposed if not unicodedata.combining(c))
+    tokens = []
+    for token in TOKEN_SPLIT_RE.split(stripped):
+        if not token or token in STOPWORDS:
+            continue
+        if len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+            token = token[:-1]
+        tokens.append(token)
+    return tokens
+
+
+def build_search_index(items_by_section):
+    """Inverted index over projects and articles: term -> {docId: freq},
+    plus per-doc metadata and token counts (BM25 needs document lengths).
+    Title and tag tokens are repeated so matches there outrank body prose.
+
+    Also carries the tag vocabulary actually in use, which powers the
+    empty-query "browse by tag" view in the search dropdown, and per-doc
+    tags for client-side tag filtering later.
+    """
+    docs, index = [], {}
+    disciplines, tech_in_use = set(), set()
+    for section, items in items_by_section.items():
+        for item in items:
+            body_text = html.unescape(TAG_STRIP_RE.sub(" ", item["body"]))
+            tokens = (
+                tokenize(item["title"]) * 3
+                + tokenize(" ".join(item["tech"] + [item["discipline"]])) * 2
+                + tokenize(body_text)
+            )
+            doc_id = len(docs)
+            disciplines.add(item["discipline"])
+            tech_in_use.update(item["tech"])
+            docs.append({
+                "title": item["title"],
+                "url": item["url"],
+                "section": section,
+                "excerpt": item["description"],
+                "tags": [item["discipline"]] + item["tech"],
+                "date": item["date"],
+                "len": len(tokens),
+            })
+            for token in tokens:
+                postings = index.setdefault(token, {})
+                postings[doc_id] = postings.get(doc_id, 0) + 1
+    return {
+        "docs": docs,
+        "index": index,
+        "tags": {"discipline": sorted(disciplines), "tech": sorted(tech_in_use)},
+    }
+
+
 INTERNAL_LINK_RE = re.compile(r'(?:href|src)="([^"]+)"')
 
 
@@ -278,7 +370,12 @@ def build():
 
     vocab = load_taxonomies()
     base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
-    header = (TEMPLATES / "partials" / "header.html").read_text(encoding="utf-8")
+    # The header carries the search box, so the partial slots in here once
+    # rather than on every page render.
+    header = render(
+        (TEMPLATES / "partials" / "header.html").read_text(encoding="utf-8"),
+        {"search": (TEMPLATES / "partials" / "search.html").read_text(encoding="utf-8")},
+    )
     footer = (TEMPLATES / "partials" / "footer.html").read_text(encoding="utf-8")
     card_template = (TEMPLATES / "partials" / "card.html").read_text(encoding="utf-8")
 
@@ -367,6 +464,49 @@ def build():
         emit(f"tags/{t}/index.html",
              title=f"{t} — {SITE_NAME}", description=lede,
              content=listing_body(f"Tagged “{t}”", lede, tagged, card_template))
+
+    # ---- search page --------------------------------------------------------
+    # The chips are real links to the tag pages, so /search/ works without
+    # JS; <search-page> (static/js/search.js) upgrades them to filter
+    # toggles with AND/OR matching and keeps the URL shareable.
+    def tag_chips(kind, tags, prefix):
+        return "\n".join(
+            f'      <li><a class="tag" data-kind="{kind}" data-tag="{t}"'
+            f' href="{prefix}{t}/">{t}</a></li>'
+            for t in tags)
+
+    search_content = f"""<h1>Search</h1>
+<p class="lede">Find projects and articles by text, by tag, or both.</p>
+<search-page>
+  <input type="search" placeholder="Search…" aria-label="Search projects and articles" autocomplete="off">
+  <div class="search-filters">
+    <span class="search-browse-label">Disciplines</span>
+    <ul class="search-tag-group">
+{tag_chips("discipline", sorted({i["discipline"] for i in everything}), "/discipline/")}
+    </ul>
+    <span class="search-browse-label">Tech</span>
+    <ul class="search-tag-group">
+{tag_chips("tech", sorted({t for i in everything for t in i["tech"]}), "/tags/")}
+    </ul>
+    <fieldset class="search-mode">
+      <legend>Tag matching</legend>
+      <label><input type="radio" name="tag-mode" value="or" checked> any selected tag</label>
+      <label><input type="radio" name="tag-mode" value="and"> all selected tags</label>
+    </fieldset>
+  </div>
+  <p class="search-count" aria-live="polite"></p>
+  <ul class="search-results search-results--page"></ul>
+</search-page>"""
+    emit("search/index.html",
+         title=f"Search — {SITE_NAME}",
+         description="Search projects and articles by text or filter by tag.",
+         content=search_content)
+
+    # ---- search index -------------------------------------------------------
+    (DIST / "search-index.json").write_text(
+        json.dumps(build_search_index(items), separators=(",", ":")),
+        encoding="utf-8")
+    print("wrote dist/search-index.json")
 
     # ---- sitemap and RSS ----------------------------------------------------
     (DIST / "sitemap.xml").write_text(sitemap_xml(sitemap_entries), encoding="utf-8")

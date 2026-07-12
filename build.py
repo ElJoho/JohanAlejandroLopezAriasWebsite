@@ -41,7 +41,9 @@ STATIC = ROOT / "static"
 DIST = ROOT / "dist"
 TAXONOMY_FILE = ROOT / "docs" / "taxonomies.md"
 
-SITE_URL = "https://www.johanalejandrolopezarias.com"
+# Apex, not www — the live DNS 301-redirects www to the apex, and canonical
+# URLs (hreflang, sitemap, og:url, feeds) must match the host actually served.
+SITE_URL = "https://johanalejandrolopezarias.com"
 SITE_NAME = "Johan Alejandro López Arias"
 
 # ---------------------------------------------------------------------------

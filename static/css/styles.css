@@ -274,6 +274,20 @@ button {
   cursor: pointer;
 }
 
+/* Inline result of a fetch-submitted contact form (contact-form.js) */
+.form-status {
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-alt);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0.25rem;
+  font-size: var(--text-sm);
+}
+
+.form-status-error {
+  border-left-color: #c43d3d;
+}
+
 /* ---------------------------------------------------------------------
    Cards (project/article indexes and tag pages)
 --------------------------------------------------------------------- */

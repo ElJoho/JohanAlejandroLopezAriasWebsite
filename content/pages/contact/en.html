@@ -6,8 +6,12 @@ description: Get in touch with Johan Alejandro López Arias.
   <h1>Contact</h1>
   <p>The fastest ways to reach me are GitHub, YouTube, or LinkedIn — links in the footer — or the form below.</p>
 
-  <form action="https://api.web3forms.com/submit" method="POST">
+  <form action="https://api.web3forms.com/submit" method="POST"
+        data-success="Your message was sent — thanks! I'll reply soon."
+        data-error="Something went wrong and the message wasn't sent. Please try again, or reach me through the links in the footer.">
     <input type="hidden" name="access_key" value="7e8626a2-fef4-4fc9-ae7a-acf2d8cd8f57">
+    <!-- No-JS fallback: Web3Forms redirects here after a plain POST; contact-form.js takes over when JS is available. -->
+    <input type="hidden" name="redirect" value="https://www.johanalejandrolopezarias.com/contact-received.html">
 
     <!-- Honeypot: real visitors never see or fill this in; bots that auto-fill every field do, so submissions with it non-empty are spam. -->
     <div class="form-field hp-field" aria-hidden="true">
@@ -31,5 +35,9 @@ description: Get in touch with Johan Alejandro López Arias.
     </div>
 
     <button type="submit">Send</button>
+
+    <p id="form-status" class="form-status" role="status" hidden></p>
   </form>
+
+  <script type="module" src="/static/js/contact-form.js"></script>
 </section>

@@ -1,0 +1,43 @@
+---
+title: Kontakt — Johan Alejandro López Arias
+description: Nehmen Sie Kontakt zu Johan Alejandro López Arias auf.
+---
+<section>
+  <h1>Kontakt</h1>
+  <p>Am schnellsten erreichen Sie mich über GitHub, YouTube oder LinkedIn — die Links stehen in der Fußzeile — oder über das Formular unten.</p>
+
+  <form action="https://api.web3forms.com/submit" method="POST"
+        data-success="Ihre Nachricht wurde gesendet — danke! Ich antworte bald."
+        data-error="Etwas ist schiefgelaufen und die Nachricht wurde nicht gesendet. Bitte versuchen Sie es erneut oder erreichen Sie mich über die Links in der Fußzeile.">
+    <input type="hidden" name="access_key" value="7e8626a2-fef4-4fc9-ae7a-acf2d8cd8f57">
+    <!-- No-JS fallback: Web3Forms redirects here after a plain POST; contact-form.js takes over when JS is available. -->
+    <input type="hidden" name="redirect" value="https://www.johanalejandrolopezarias.com/de/contact-received.html">
+
+    <!-- Honeypot: real visitors never see or fill this in; bots that auto-fill every field do, so submissions with it non-empty are spam. -->
+    <div class="form-field hp-field" aria-hidden="true">
+      <label for="botcheck">Dieses Feld leer lassen</label>
+      <input type="text" id="botcheck" name="botcheck" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="form-field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+
+    <div class="form-field">
+      <label for="email">E-Mail</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+
+    <div class="form-field">
+      <label for="message">Nachricht</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+    </div>
+
+    <button type="submit">Senden</button>
+
+    <p id="form-status" class="form-status" role="status" hidden></p>
+  </form>
+
+  <script type="module" src="/static/js/contact-form.js"></script>
+</section>

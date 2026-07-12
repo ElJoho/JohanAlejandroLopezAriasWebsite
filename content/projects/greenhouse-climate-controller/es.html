@@ -1,0 +1,21 @@
+---
+title: Controlador de clima para invernadero
+description: Redacción provisional — un controlador basado en ESP32 que automatiza la ventilación, el riego y el registro de datos de un invernadero pequeño.
+---
+<!-- PLACEHOLDER — replace alongside en.html when the real write-up lands in Phase 3. -->
+<section>
+  <h2>Contexto</h2>
+  <p>Un pequeño invernadero casero perdía plántulas por los cambios bruscos de temperatura. Este controlador lee temperatura y humedad, acciona un servo de ventilación y una válvula de riego, y registra todo para analizarlo después.</p>
+
+  <h2>Mi rol</h2>
+  <p>Diseñé la lógica de control, cableé el gabinete y escribí el firmware y la canalización de registro de datos.</p>
+
+  <h2>Restricciones y compromisos</h2>
+  <p>No había red eléctrica cerca del invernadero, así que todo el sistema funciona con un panel solar pequeño y una batería — lo que descartó consultar por Wi-Fi cada pocos segundos en favor de envíos por lotes.</p>
+
+  <h2>Enfoque</h2>
+  <p>Un ESP32 muestrea los sensores en un ciclo de trabajo con sueño profundo y aplica umbrales con histéresis para la ventilación y la válvula. Un script de Python en un servidor casero ingiere los registros por lotes y produce gráficas diarias.</p>
+
+  <h2>Resultado</h2>
+  <p>Mantuvo la banda de temperatura objetivo durante toda una temporada de cultivo. Métricas provisionales — se reemplazarán con las reales.</p>
+</section>

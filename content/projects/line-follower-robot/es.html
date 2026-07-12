@@ -1,0 +1,21 @@
+---
+title: Robot seguidor de línea con evasión de obstáculos
+description: Redacción provisional — un seguidor de línea de tracción diferencial que rodea los obstáculos y retoma la pista.
+---
+<!-- PLACEHOLDER — replace alongside en.html when the real write-up lands in Phase 3. -->
+<section>
+  <h2>Contexto</h2>
+  <p>Un robot de tracción diferencial que sigue una línea de cinta usando un arreglo de sensores infrarrojos de reflectancia y que, cuando aparece un obstáculo en la pista, lo rodea y vuelve a encontrar la línea al otro lado.</p>
+
+  <h2>Mi rol</h2>
+  <p>Constructor único: diseño del chasis, electrónica y firmware.</p>
+
+  <h2>Restricciones y compromisos</h2>
+  <p>El presupuesto limitó el número de sensores a cinco, lo que restringe qué tan cerrada puede ser una curva que el controlador siga a velocidad. Se eligió un lazo PD simple en lugar de PID porque el término integral añadía problemas de saturación en las rectas largas sin mejorar el paso por curva.</p>
+
+  <h2>Enfoque</h2>
+  <p>Chasis impreso en 3D, un Arduino Nano ejecutando un lazo PD de seguimiento de línea en C++ y un sensor ultrasónico que dispara una máquina de estados con una maniobra fija de desvío.</p>
+
+  <h2>Resultado</h2>
+  <p>Completa de forma confiable una pista de prueba de 12 m con dos obstáculos. Métricas provisionales — se reemplazarán con las reales.</p>
+</section>

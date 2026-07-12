@@ -1,0 +1,21 @@
+---
+title: Linienfolger-Roboter mit Hindernisumfahrung
+description: Platzhaltertext — ein Linienfolger mit Differentialantrieb, der Hindernisse umfährt und danach die Spur wieder aufnimmt.
+---
+<!-- PLACEHOLDER — replace alongside en.html when the real write-up lands in Phase 3. -->
+<section>
+  <h2>Kontext</h2>
+  <p>Ein Roboter mit Differentialantrieb, der einer geklebten Linie mit einer Reihe von Infrarot-Reflexionssensoren folgt — und wenn ein Hindernis auf der Strecke auftaucht, fährt er darum herum und findet die Linie auf der anderen Seite wieder.</p>
+
+  <h2>Meine Rolle</h2>
+  <p>Alleiniger Entwickler: Chassis-Konstruktion, Elektronik und Firmware.</p>
+
+  <h2>Randbedingungen &amp; Kompromisse</h2>
+  <p>Das Budget begrenzte die Sensorzahl auf fünf, was einschränkt, wie enge Kurven der Regler bei Geschwindigkeit verfolgen kann. Statt PID wurde ein einfacher PD-Regler gewählt, weil der Integralanteil auf langen Geraden Windup-Probleme verursachte, ohne das Kurvenverhalten zu verbessern.</p>
+
+  <h2>Vorgehen</h2>
+  <p>Ein 3D-gedrucktes Chassis, ein Arduino Nano mit einem PD-Linienfolge-Regelkreis in C++ und ein Ultraschallsensor, der einen Zustandsautomaten mit einem festen Ausweichmanöver auslöst.</p>
+
+  <h2>Ergebnis</h2>
+  <p>Absolviert zuverlässig eine 12-m-Teststrecke mit zwei Hindernissen. Platzhalter-Kennzahlen — werden durch echte ersetzt.</p>
+</section>

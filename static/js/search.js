@@ -7,9 +7,13 @@
  *                    toggles (AND/OR), state mirrored into the URL so
  *                    searches are shareable.
  *
- * build.py emits /search-index.json: an inverted index (term -> {docId:
- * freq}) plus doc metadata and token counts. It is fetched once, lazily —
- * on first focus for the header box, on connect for the search page.
+ * build.py emits one index per language — /search-index.<lang>.json,
+ * holding that language's genuine translations only — with an inverted
+ * index (term -> {docId: freq}), doc metadata, token counts, the language
+ * tree's URL root, and the localized UI strings, so this module contains
+ * no user-facing text of its own. The page's <html lang> picks the file;
+ * it is fetched once, lazily — on first focus for the header box, on
+ * connect for the search page.
  *
  * tokenize() MUST stay in step with tokenize() in build.py: same lowercase,
  * accent-strip, split, and singularize rules. The one deliberate difference
@@ -23,15 +27,18 @@ const MAX_DROPDOWN_RESULTS = 8;
 
 let indexPromise;
 
-/** One shared fetch of the index; header box and search page reuse it. */
+/** One shared fetch of the current language's index; header box and
+ * search page reuse it. */
 function loadIndex() {
-  indexPromise ??= fetch("/search-index.json")
+  const lang = document.documentElement.lang || "en";
+  indexPromise ??= fetch(`/search-index.${lang}.json`)
     .then((res) => {
       if (!res.ok) throw new Error(res.status);
       return res.json();
     })
     .then((data) => {
-      data.avgLen = data.docs.reduce((sum, d) => sum + d.len, 0) / data.docs.length;
+      data.avgLen =
+        data.docs.reduce((sum, d) => sum + d.len, 0) / (data.docs.length || 1);
       return data;
     });
   return indexPromise;
@@ -75,11 +82,12 @@ function bm25(data, query) {
     .map(([id]) => docs[id]);
 }
 
-function resultItem(d) {
+function resultItem(data, d) {
+  const section = data.strings.sections[d.section] ?? d.section;
   return `
       <li>
         <a href="${d.url}">${escapeHtml(d.title)}</a>
-        <span class="search-result-meta">${d.section}</span>
+        <span class="search-result-meta">${escapeHtml(section)}</span>
         <p>${escapeHtml(d.excerpt)}</p>
       </li>`;
 }
@@ -128,20 +136,21 @@ class SiteSearch extends HTMLElement {
       return;
     }
     const hits = bm25(this.data, query).slice(0, MAX_DROPDOWN_RESULTS);
+    const { root, strings: s } = this.data;
     this.results.innerHTML = hits.length
-      ? hits.map(resultItem).join("") +
-        `<li class="search-more"><a href="/search/?q=${encodeURIComponent(query)}">All results &amp; filters →</a></li>`
-      : '<li class="search-empty">No results. <a href="/search/">Browse everything →</a></li>';
+      ? hits.map((d) => resultItem(this.data, d)).join("") +
+        `<li class="search-more"><a href="${root}search/?q=${encodeURIComponent(query)}">${escapeHtml(s.all_results)}</a></li>`
+      : `<li class="search-empty">${escapeHtml(s.no_results)} <a href="${root}search/">${escapeHtml(s.browse_everything)}</a></li>`;
     this.results.hidden = false;
   }
 
   renderBrowse() {
-    const { tags } = this.data;
+    const { tags, root, strings: s } = this.data;
     const group = (label, list, urlFor) =>
       list.length
         ? `
       <li class="search-browse">
-        <span class="search-browse-label">${label}</span>
+        <span class="search-browse-label">${escapeHtml(label)}</span>
         <ul class="search-tag-group">
           ${list
             .map((t) => `<li><a class="tag" href="${urlFor(t)}">${t}</a></li>`)
@@ -150,8 +159,8 @@ class SiteSearch extends HTMLElement {
       </li>`
         : "";
     this.results.innerHTML =
-      group("Browse by discipline", tags.discipline, (t) => `/discipline/${t}/`) +
-      group("Browse by tech", tags.tech, (t) => `/tags/${t}/`);
+      group(s.browse_discipline, tags.discipline, (t) => `${root}discipline/${t}/`) +
+      group(s.browse_tech, tags.tech, (t) => `${root}tags/${t}/`);
     this.results.hidden = false;
   }
 
@@ -212,7 +221,9 @@ class SearchPage extends HTMLElement {
     try {
       this.data = await loadIndex();
     } catch {
-      this.count.textContent = "Search is unavailable right now.";
+      // Localized via the build (the index that would carry the strings
+      // is exactly what failed to load).
+      this.count.textContent = this.dataset.unavailable ?? "Search is unavailable.";
       return;
     }
     this.applyUrlParams();
@@ -260,8 +271,10 @@ class SearchPage extends HTMLElement {
       );
     }
 
-    this.count.textContent = `${hits.length} result${hits.length === 1 ? "" : "s"}`;
-    this.results.innerHTML = hits.map(resultItem).join("");
+    const s = this.data.strings;
+    this.count.textContent =
+      hits.length === 1 ? s.results_one : s.results_many.replace("{n}", hits.length);
+    this.results.innerHTML = hits.map((d) => resultItem(this.data, d)).join("");
 
     // Mirror the state into the URL so searches are shareable.
     const params = new URLSearchParams();

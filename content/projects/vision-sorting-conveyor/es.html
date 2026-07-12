@@ -1,0 +1,21 @@
+---
+title: Banda transportadora clasificadora por visión
+description: Redacción provisional — una demo de banda transportadora que clasifica piezas por color y forma con OpenCV y las desvía con una compuerta controlada por PLC.
+---
+<!-- PLACEHOLDER — replace alongside en.html when the real write-up lands in Phase 3. -->
+<section>
+  <h2>Contexto</h2>
+  <p>Una línea de demostración de sobremesa: las piezas recorren una banda transportadora frente a una cámara, se clasifican por color y contorno, y una compuerta neumática desvía cada pieza a la caja correcta.</p>
+
+  <h2>Mi rol</h2>
+  <p>Construí la canalización de visión y el protocolo de intercambio entre el computador de visión y el PLC que controla la banda y la compuerta.</p>
+
+  <h2>Restricciones y compromisos</h2>
+  <p>La clasificación usa OpenCV clásico (umbrales de color más características del contorno) en lugar de una red neuronal — el conjunto de piezas es pequeño y controlado, y los umbrales deterministas son más fáciles de depurar en la línea que un modelo.</p>
+
+  <h2>Enfoque</h2>
+  <p>Una Raspberry Pi ejecuta la canalización de OpenCV y le hace señales al PLC por E/S discretas; el PLC es dueño de todo el movimiento y la temporización, de modo que un fallo de visión nunca pueda dejar la compuerta en un estado inseguro.</p>
+
+  <h2>Resultado</h2>
+  <p>Clasifica de forma confiable el conjunto de piezas de demostración a la velocidad de la banda. Métricas provisionales — se reemplazarán con las reales.</p>
+</section>

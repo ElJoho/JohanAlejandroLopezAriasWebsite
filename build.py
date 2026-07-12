@@ -9,10 +9,14 @@ frontmatter:
   content/projects/<slug>/  -> dist/projects/<slug>/   portfolio items
   content/articles/<slug>/  -> dist/articles/<slug>/   writing
 
-Derived output regenerated on every run: the projects/articles index pages,
-one page per tag in use (/discipline/<d>/ and /tags/<t>/), sitemap.xml, and
-an RSS feed of articles. static/ is copied across with content-hash cache
-busting on CSS/JS filenames.
+Every page is generated once per language in the registry (docs/
+i18n-design.md): the default language at the site root, the others under
+/<lang>/, with fallback pages where a translation is missing. Derived
+output regenerated on every run: the projects/articles index pages, one
+page per tag in use (/discipline/<d>/ and /tags/<t>/), a per-language RSS
+feed and search index (search-index.<lang>.json), and sitemap.xml with
+hreflang sets. static/ is copied across with content-hash cache busting
+on CSS/JS filenames.
 
 Quality gates — the build FAILS on: missing frontmatter fields, tags not
 listed in docs/taxonomies.md, and broken internal links.
@@ -56,6 +60,13 @@ LANGUAGES = {
                    "July", "August", "September", "October", "November",
                    "December"),
         "date_fmt": "{day} {month} {year}",
+        # Search stop-words, one set per language. Listed accent-stripped,
+        # because tokenize() removes diacritics before this filter runs.
+        "stopwords": {
+            "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
+            "from", "has", "have", "in", "is", "it", "its", "of", "on", "or",
+            "that", "the", "this", "to", "was", "were", "will", "with",
+        },
         "strings": {
             # header / nav
             "nav_aria": "Primary",
@@ -90,6 +101,17 @@ LANGUAGES = {
             "search_mode_legend": "Tag matching",
             "search_mode_or": "any selected tag",
             "search_mode_and": "all selected tags",
+            # search UI strings shipped to the client in the index JSON
+            "search_results_one": "1 result",
+            "search_results_many": "{n} results",
+            "search_no_results": "No results.",
+            "search_browse_everything": "Browse everything →",
+            "search_all_results": "All results & filters →",
+            "search_browse_discipline": "Browse by discipline",
+            "search_browse_tech": "Browse by tech",
+            "search_unavailable": "Search is unavailable right now.",
+            "section_projects": "projects",
+            "section_articles": "articles",
             # feeds
             "rss_link_title": "Articles — RSS",
             "rss_feed_title": "{site} — Articles",
@@ -105,6 +127,11 @@ LANGUAGES = {
                    "julio", "agosto", "septiembre", "octubre", "noviembre",
                    "diciembre"),
         "date_fmt": "{day} de {month} de {year}",
+        "stopwords": {
+            "al", "como", "con", "de", "del", "el", "en", "es", "esta", "la",
+            "las", "lo", "los", "mas", "para", "pero", "por", "que", "se",
+            "sin", "sobre", "su", "sus", "un", "una", "uno", "y", "ya",
+        },
         "strings": {
             # header / nav
             "nav_aria": "Principal",
@@ -139,6 +166,17 @@ LANGUAGES = {
             "search_mode_legend": "Coincidencia de etiquetas",
             "search_mode_or": "cualquier etiqueta seleccionada",
             "search_mode_and": "todas las etiquetas seleccionadas",
+            # search UI strings shipped to the client in the index JSON
+            "search_results_one": "1 resultado",
+            "search_results_many": "{n} resultados",
+            "search_no_results": "Sin resultados.",
+            "search_browse_everything": "Explorar todo →",
+            "search_all_results": "Todos los resultados y filtros →",
+            "search_browse_discipline": "Explorar por disciplina",
+            "search_browse_tech": "Explorar por tecnología",
+            "search_unavailable": "La búsqueda no está disponible en este momento.",
+            "section_projects": "proyectos",
+            "section_articles": "artículos",
             # feeds
             "rss_link_title": "Artículos — RSS",
             "rss_feed_title": "{site} — Artículos",
@@ -154,6 +192,14 @@ LANGUAGES = {
                    "Juli", "August", "September", "Oktober", "November",
                    "Dezember"),
         "date_fmt": "{day}. {month} {year}",
+        "stopwords": {
+            "aber", "als", "am", "an", "auch", "auf", "aus", "bei", "bis",
+            "das", "dass", "dem", "den", "der", "des", "die", "durch", "ein",
+            "eine", "einem", "einen", "einer", "eines", "es", "fur", "hat",
+            "haben", "im", "in", "ist", "mit", "nach", "nicht", "noch", "nur",
+            "oder", "sich", "sie", "sind", "so", "uber", "um", "und", "von",
+            "vor", "war", "werden", "wie", "wird", "zu", "zum", "zur",
+        },
         "strings": {
             # header / nav
             "nav_aria": "Hauptnavigation",
@@ -188,6 +234,17 @@ LANGUAGES = {
             "search_mode_legend": "Schlagwort-Logik",
             "search_mode_or": "beliebiges gewähltes Schlagwort",
             "search_mode_and": "alle gewählten Schlagwörter",
+            # search UI strings shipped to the client in the index JSON
+            "search_results_one": "1 Ergebnis",
+            "search_results_many": "{n} Ergebnisse",
+            "search_no_results": "Keine Ergebnisse.",
+            "search_browse_everything": "Alles durchstöbern →",
+            "search_all_results": "Alle Ergebnisse & Filter →",
+            "search_browse_discipline": "Nach Disziplin stöbern",
+            "search_browse_tech": "Nach Technologie stöbern",
+            "search_unavailable": "Die Suche ist derzeit nicht verfügbar.",
+            "section_projects": "Projekte",
+            "section_articles": "Artikel",
             # feeds
             "rss_link_title": "Artikel — RSS",
             "rss_feed_title": "{site} — Artikel",
@@ -557,34 +614,23 @@ def rss_xml(articles, lang):
 
 
 # ---------------------------------------------------------------------------
-# Search: build-time half of the site's own search engine. This emits
-# search-index.json (inverted index + doc metadata); static/js/search.js
-# fetches it and ranks matches with BM25 entirely client-side.
+# Search: build-time half of the site's own search engine. One index per
+# language — search-index.<lang>.json, genuine translations only — holding
+# the inverted index, doc metadata, and the client's UI strings;
+# static/js/search.js fetches the current page language's file and ranks
+# matches with BM25 entirely client-side. Stop-words live per language in
+# the registry.
 # ---------------------------------------------------------------------------
-
-# Stop-words for both site languages (a Spanish version may land under /es/
-# later, and Spanish words already appear in names/titles). Spanish entries
-# are listed accent-stripped because tokenize() removes diacritics before
-# this filter runs.
-STOPWORDS = {
-    # English
-    "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from",
-    "has", "have", "in", "is", "it", "its", "of", "on", "or", "that", "the",
-    "this", "to", "was", "were", "will", "with",
-    # Spanish (accent-stripped)
-    "al", "como", "con", "de", "del", "el", "en", "es", "esta", "la", "las",
-    "lo", "los", "mas", "para", "pero", "por", "que", "se", "sin", "sobre",
-    "su", "sus", "un", "una", "uno", "y", "ya",
-}
 
 TOKEN_SPLIT_RE = re.compile(r"[^a-z0-9]+")
 TAG_STRIP_RE = re.compile(r"<[^>]+>")
 
 
-def tokenize(text):
-    """Lowercase, strip accents, split on non-alphanumerics, drop stop-words,
-    and crudely singularize (trailing 's', so 'motors' matches 'motor' —
-    a real English stemmer would mangle the Spanish that shows up here).
+def tokenize(text, stopwords):
+    """Lowercase, strip accents, split on non-alphanumerics, drop the
+    language's stop-words, and crudely singularize (trailing 's', so
+    'motors' matches 'motor' — deliberately simpler than a real stemmer,
+    which would have to be per-language too).
 
     MUST stay in step with tokenize() in static/js/search.js, or queries
     won't match the index. Stop-words are the one exception: the client
@@ -595,7 +641,7 @@ def tokenize(text):
     stripped = "".join(c for c in decomposed if not unicodedata.combining(c))
     tokens = []
     for token in TOKEN_SPLIT_RE.split(stripped):
-        if not token or token in STOPWORDS:
+        if not token or token in stopwords:
             continue
         if len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
             token = token[:-1]
@@ -603,33 +649,39 @@ def tokenize(text):
     return tokens
 
 
-def build_search_index(items_by_section):
-    """Inverted index over projects and articles: term -> {docId: freq},
-    plus per-doc metadata and token counts (BM25 needs document lengths).
-    Title and tag tokens are repeated so matches there outrank body prose.
+def build_search_index(items_by_section, lang):
+    """Inverted index over one language's genuine translations: term ->
+    {docId: freq}, plus per-doc metadata and token counts (BM25 needs
+    document lengths). Title and tag tokens are repeated so matches there
+    outrank body prose.
 
-    Also carries the tag vocabulary actually in use, which powers the
-    empty-query "browse by tag" view in the search dropdown, and per-doc
-    tags for client-side tag filtering later.
+    Also carries the language's URL root, the client-side UI strings, and
+    the tag vocabulary in use among these docs (the empty-query "browse
+    by tag" view), so static/js/search.js stays fully data-driven.
     """
+    cfg = LANGUAGES[lang]
+    S, stopwords, root = cfg["strings"], cfg["stopwords"], lang_root(lang)
     docs, index = [], {}
     disciplines, tech_in_use = set(), set()
     for section, items in items_by_section.items():
         for item in items:
-            body_text = html.unescape(TAG_STRIP_RE.sub(" ", item["body"]))
+            if lang not in item["i18n"]:
+                continue  # each index holds genuine translations only
+            txt = item["i18n"][lang]
+            body_text = html.unescape(TAG_STRIP_RE.sub(" ", txt["body"]))
             tokens = (
-                tokenize(item["title"]) * 3
-                + tokenize(" ".join(item["tech"] + [item["discipline"]])) * 2
-                + tokenize(body_text)
+                tokenize(txt["title"], stopwords) * 3
+                + tokenize(" ".join(item["tech"] + [item["discipline"]]), stopwords) * 2
+                + tokenize(body_text, stopwords)
             )
             doc_id = len(docs)
             disciplines.add(item["discipline"])
             tech_in_use.update(item["tech"])
             docs.append({
-                "title": item["title"],
-                "url": item["url"],
+                "title": txt["title"],
+                "url": f"{root}{section}/{item['slug']}/",
                 "section": section,
-                "excerpt": item["description"],
+                "excerpt": txt["description"],
                 "tags": [item["discipline"]] + item["tech"],
                 "date": item["date"],
                 "len": len(tokens),
@@ -638,6 +690,18 @@ def build_search_index(items_by_section):
                 postings = index.setdefault(token, {})
                 postings[doc_id] = postings.get(doc_id, 0) + 1
     return {
+        "root": root,
+        "strings": {
+            "sections": {"projects": S["section_projects"],
+                         "articles": S["section_articles"]},
+            "results_one": S["search_results_one"],
+            "results_many": S["search_results_many"],
+            "no_results": S["search_no_results"],
+            "browse_everything": S["search_browse_everything"],
+            "all_results": S["search_all_results"],
+            "browse_discipline": S["search_browse_discipline"],
+            "browse_tech": S["search_browse_tech"],
+        },
         "docs": docs,
         "index": index,
         "tags": {"discipline": sorted(disciplines), "tech": sorted(tech_in_use)},
@@ -854,7 +918,7 @@ def build():
 
         search_content = f"""<h1>{S["search_title"]}</h1>
 <p class="lede">{S["search_lede"]}</p>
-<search-page>
+<search-page data-unavailable="{S["search_unavailable"]}">
   <input type="search" placeholder="{S["search_placeholder"]}" aria-label="{S["search_aria"]}" autocomplete="off">
   <div class="search-filters">
     <span class="search-browse-label">{S["search_disciplines"]}</span>
@@ -887,13 +951,12 @@ def build():
                                                 encoding="utf-8")
         print(f"wrote dist/{prefix}feed.xml")
 
-    # ---- search index -------------------------------------------------------
-    # Still a single English index; per-language indexes (and the matching
-    # search.js changes) are the next i18n step.
-    (DIST / "search-index.json").write_text(
-        json.dumps(build_search_index(items), separators=(",", ":")),
-        encoding="utf-8")
-    print("wrote dist/search-index.json")
+        # ---- search index: one per language, genuine translations only -----
+        index_name = f"search-index.{lang}.json"
+        (DIST / index_name).write_text(
+            json.dumps(build_search_index(items, lang), separators=(",", ":")),
+            encoding="utf-8")
+        print(f"wrote dist/{index_name}")
 
     # ---- sitemap (genuine translations only, with hreflang sets) -----------
     (DIST / "sitemap.xml").write_text(sitemap_xml(sitemap_entries), encoding="utf-8")

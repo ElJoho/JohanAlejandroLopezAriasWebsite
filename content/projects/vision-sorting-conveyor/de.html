@@ -1,0 +1,21 @@
+---
+title: Kamerabasiertes Sortierförderband
+description: Platzhaltertext — eine Förderband-Demo, die Teile mit OpenCV nach Farbe und Form klassifiziert und mit einer SPS-gesteuerten Weiche aussortiert.
+---
+<!-- PLACEHOLDER — replace alongside en.html when the real write-up lands in Phase 3. -->
+<section>
+  <h2>Kontext</h2>
+  <p>Eine Demonstrationslinie im Tischformat: Teile fahren auf einem Förderband an einer Kamera vorbei, werden nach Farbe und Umriss klassifiziert, und eine pneumatische Weiche lenkt jedes Teil in den richtigen Behälter.</p>
+
+  <h2>Meine Rolle</h2>
+  <p>Ich habe die Bildverarbeitungs-Pipeline gebaut und das Handshake-Protokoll zwischen dem Bildverarbeitungsrechner und der SPS, die Förderband und Weiche steuert.</p>
+
+  <h2>Randbedingungen &amp; Kompromisse</h2>
+  <p>Die Klassifikation läuft mit klassischem OpenCV (Farbschwellwerte plus Konturmerkmale) statt mit einem neuronalen Netz — der Teilesatz ist klein und kontrolliert, und deterministische Schwellwerte lassen sich an der Linie leichter debuggen als ein Modell.</p>
+
+  <h2>Vorgehen</h2>
+  <p>Ein Raspberry Pi führt die OpenCV-Pipeline aus und signalisiert der SPS über diskrete E/A; die SPS besitzt die gesamte Bewegung und das Timing, sodass ein Aussetzer der Bildverarbeitung die Weiche nie in einen unsicheren Zustand bringen kann.</p>
+
+  <h2>Ergebnis</h2>
+  <p>Sortiert den Demo-Teilesatz zuverlässig bei Bandgeschwindigkeit. Platzhalter-Kennzahlen — werden durch echte ersetzt.</p>
+</section>

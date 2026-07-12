@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Static site generator. Reads content/, wraps it in templates/, writes dist/.
 
-Content types (all hand-written HTML fragments with `---` frontmatter):
-  content/pages/     -> dist/<slug>.html        fixed pages
-  content/projects/  -> dist/projects/<slug>/   portfolio items
-  content/articles/  -> dist/articles/<slug>/   writing
+Content lives in page bundles: one folder per page, named by its slug,
+holding a hand-written HTML fragment per language (`en.html` mandatory;
+translations come with i18n — see docs/i18n-design.md), each with `---`
+frontmatter:
+  content/pages/<slug>/     -> dist/<slug>.html        fixed pages
+  content/projects/<slug>/  -> dist/projects/<slug>/   portfolio items
+  content/articles/<slug>/  -> dist/articles/<slug>/   writing
 
 Derived output regenerated on every run: the projects/articles index pages,
 one page per tag in use (/discipline/<d>/ and /tags/<t>/), sitemap.xml, and
@@ -37,7 +40,7 @@ TAXONOMY_FILE = ROOT / "docs" / "taxonomies.md"
 SITE_URL = "https://www.johanalejandrolopezarias.com"
 SITE_NAME = "Johan Alejandro López Arias"
 
-REQUIRED_PAGE_FIELDS = ("title", "description", "slug")
+REQUIRED_PAGE_FIELDS = ("title", "description")
 REQUIRED_ITEM_FIELDS = REQUIRED_PAGE_FIELDS + ("date", "discipline", "tech")
 
 # The two sections that share the item pipeline. `lede` doubles as the
@@ -119,11 +122,32 @@ def tag_list_html(tech):
     return f'<ul class="tag-list">\n{links}\n    </ul>'
 
 
+def bundle_sources(folder):
+    """Yield (slug, en.html path) for each page bundle in a content folder.
+
+    A bundle is a directory named by its slug containing en.html (English
+    is the mandatory default language — docs/i18n-design.md). Both checks
+    here exist so content can never be silently skipped: a flat .html left
+    over from the pre-bundle layout fails loudly, as does a bundle folder
+    with no en.html in it.
+    """
+    for stray in sorted(folder.glob("*.html")):
+        fail(f"{stray}: flat content files are gone — move it to "
+             f"{stray.relative_to(ROOT).with_suffix('')}/en.html")
+    for bundle in sorted(p for p in folder.iterdir() if p.is_dir()):
+        source = bundle / "en.html"
+        if not source.is_file():
+            fail(f"{bundle}: bundle has no en.html (English is mandatory)")
+        yield bundle.name, source
+
+
 def load_items(section, vocab):
-    """Read one section's content files, validating frontmatter as we go."""
+    """Read one section's content bundles, validating frontmatter as we go."""
     items = []
-    for source in sorted((CONTENT / section).glob("*.html")):
+    for slug, source in bundle_sources(CONTENT / section):
         fields, body = parse_frontmatter(source.read_text(encoding="utf-8"))
+        if "slug" in fields:
+            fail(f"{source}: drop the 'slug' field — the bundle folder name is the slug")
 
         # `tech` must be present but may be empty; everything else needs a value.
         missing = [
@@ -149,16 +173,12 @@ def load_items(section, vocab):
 
         items.append({
             **fields,
+            "slug": slug,
             "tech": tech,
             "when": when,
-            "url": f"/{section}/{fields['slug']}/",
+            "url": f"/{section}/{slug}/",
             "body": body,
         })
-
-    # Duplicate slugs would silently overwrite each other's output.
-    slugs = [i["slug"] for i in items]
-    for slug in {s for s in slugs if slugs.count(s) > 1}:
-        fail(f"duplicate slug '{slug}' in content/{section}/")
 
     items.sort(key=lambda i: i["when"], reverse=True)
     return items
@@ -414,12 +434,14 @@ def build():
         print(f"wrote dist/{rel_path}")
 
     # ---- fixed pages ----------------------------------------------------
-    for source in sorted((CONTENT / "pages").glob("*.html")):
+    for slug, source in bundle_sources(CONTENT / "pages"):
         fields, body = parse_frontmatter(source.read_text(encoding="utf-8"))
+        if "slug" in fields:
+            fail(f"{source}: drop the 'slug' field — the bundle folder name is the slug")
         missing = [f for f in REQUIRED_PAGE_FIELDS if not fields.get(f)]
         if missing:
             fail(f"{source} is missing frontmatter field(s): {', '.join(missing)}")
-        emit(f"{fields['slug']}.html",
+        emit(f"{slug}.html",
              title=fields["title"], description=fields["description"], content=body)
 
     # ---- projects and articles -------------------------------------------

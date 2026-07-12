@@ -40,23 +40,73 @@ TAXONOMY_FILE = ROOT / "docs" / "taxonomies.md"
 SITE_URL = "https://www.johanalejandrolopezarias.com"
 SITE_NAME = "Johan Alejandro López Arias"
 
+# ---------------------------------------------------------------------------
+# Language registry — languages are data, not code (docs/i18n-design.md).
+# Every i18n feature (output trees, switcher, hreflang, search, RSS) will
+# iterate over this table; adding a language means adding an entry plus
+# translated content, never a new code path. `strings` holds every
+# human-visible chrome string; templates reference them as {{s.key}} and
+# {tag}/{site} slots are filled with str.format() at the point of use.
+# ---------------------------------------------------------------------------
+LANGUAGES = {
+    "en": {
+        "name": "English",
+        "default": True,
+        "months": ("January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November",
+                   "December"),
+        "date_fmt": "{day} {month} {year}",
+        "strings": {
+            # header / nav
+            "nav_aria": "Primary",
+            "nav_home": "Home",
+            "nav_projects": "Projects",
+            "nav_articles": "Articles",
+            "nav_about": "About",
+            "nav_contact": "Contact",
+            "nav_search": "Search",
+            "search_placeholder": "Search…",
+            "search_aria": "Search projects and articles",
+            # footer
+            "footer_copyright": "&copy; 2026 Johan Alejandro López Arias.",
+            # detail pages
+            "filed_under": "filed under",
+            # section index pages (the lede doubles as the meta description)
+            "projects_title": "Projects",
+            "projects_lede": "Things I've built across robotics, automation, and manufacturing.",
+            "articles_title": "Articles",
+            "articles_lede": "Occasional writing about engineering, tooling, and this site itself.",
+            "empty_listing": "Nothing here yet — check back soon.",
+            # tag pages
+            "discipline_lede": "Everything filed under the {tag} discipline.",
+            "tech_heading": "Tagged “{tag}”",
+            "tech_lede": "Projects and articles tagged {tag}.",
+            # search page
+            "search_title": "Search",
+            "search_lede": "Find projects and articles by text, by tag, or both.",
+            "search_description": "Search projects and articles by text or filter by tag.",
+            "search_disciplines": "Disciplines",
+            "search_tech": "Tech",
+            "search_mode_legend": "Tag matching",
+            "search_mode_or": "any selected tag",
+            "search_mode_and": "all selected tags",
+            # feeds
+            "rss_link_title": "Articles — RSS",
+            "rss_feed_title": "{site} — Articles",
+            "rss_feed_description": "Articles by {site}.",
+        },
+    },
+}
+
+DEFAULT_LANG = next(code for code, cfg in LANGUAGES.items() if cfg.get("default"))
+
 REQUIRED_PAGE_FIELDS = ("title", "description")
 REQUIRED_ITEM_FIELDS = REQUIRED_PAGE_FIELDS + ("date", "discipline", "tech")
 
-# The two sections that share the item pipeline. `lede` doubles as the
-# index page's intro paragraph and its meta description.
-SECTIONS = {
-    "projects": {
-        "template": "project.html",
-        "index_title": "Projects",
-        "lede": "Things I've built across robotics, automation, and manufacturing.",
-    },
-    "articles": {
-        "template": "article.html",
-        "index_title": "Articles",
-        "lede": "Occasional writing about engineering, tooling, and this site itself.",
-    },
-}
+# The two sections that share the item pipeline, mapped to their type
+# templates. Their index titles and ledes live in the language registry
+# as <section>_title / <section>_lede.
+SECTIONS = {"projects": "project.html", "articles": "article.html"}
 
 
 def fail(message):
@@ -108,8 +158,17 @@ def render(template, mapping):
     return template
 
 
-def display_date(d):
-    return f"{d.day} {d.strftime('%B')} {d.year}"
+def localize(template, lang):
+    """Fill a template's {{s.key}} placeholders from the language registry."""
+    return render(template, {"s." + key: value
+                             for key, value in LANGUAGES[lang]["strings"].items()})
+
+
+def display_date(d, lang):
+    """Human-readable date in the page's language, e.g. '14 May 2026'."""
+    cfg = LANGUAGES[lang]
+    return cfg["date_fmt"].format(day=d.day, month=cfg["months"][d.month - 1],
+                                  year=d.year)
 
 
 def tag_list_html(tech):
@@ -184,25 +243,25 @@ def load_items(section, vocab):
     return items
 
 
-def card_html(card_template, item):
+def card_html(card_template, item, lang):
     return render(card_template, {
         "url": item["url"],
         "title": item["title"],
         "date": item["date"],
-        "date_display": display_date(item["when"]),
+        "date_display": display_date(item["when"], lang),
         "discipline": item["discipline"],
         "description": item["description"],
         "tech_list": tag_list_html(item["tech"]),
     })
 
 
-def listing_body(heading, lede, items, card_template):
+def listing_body(heading, lede, items, card_template, lang):
     """Shared body for index pages and tag pages: heading + card list."""
     if items:
-        cards = "\n".join(card_html(card_template, i) for i in items)
+        cards = "\n".join(card_html(card_template, i, lang) for i in items)
         cards_block = f'<ul class="card-grid">\n{cards}\n</ul>'
     else:
-        cards_block = "<p>Nothing here yet — check back soon.</p>"
+        cards_block = f'<p>{LANGUAGES[lang]["strings"]["empty_listing"]}</p>'
     return f'<h1>{heading}</h1>\n<p class="lede">{lede}</p>\n{cards_block}'
 
 
@@ -244,7 +303,8 @@ def sitemap_xml(entries):
     )
 
 
-def rss_xml(articles):
+def rss_xml(articles, lang):
+    S = LANGUAGES[lang]["strings"]
     items_xml = []
     for a in articles:
         url = f"{SITE_URL}{a['url']}"
@@ -264,9 +324,9 @@ def rss_xml(articles):
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
         "  <channel>\n"
-        f"    <title>{escape(SITE_NAME)} — Articles</title>\n"
+        f"    <title>{escape(S['rss_feed_title'].format(site=SITE_NAME))}</title>\n"
         f"    <link>{SITE_URL}/articles/</link>\n"
-        f"    <description>Articles by {escape(SITE_NAME)}.</description>\n"
+        f"    <description>{escape(S['rss_feed_description'].format(site=SITE_NAME))}</description>\n"
         f'    <atom:link href="{SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>\n'
         + "\n".join(items_xml)
         + "\n  </channel>\n</rss>\n"
@@ -389,14 +449,16 @@ def build():
     DIST.mkdir(parents=True)
 
     vocab = load_taxonomies()
-    base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
+    lang = DEFAULT_LANG  # per-language output trees land in the next i18n step
+    S = LANGUAGES[lang]["strings"]
+    base = localize((TEMPLATES / "base.html").read_text(encoding="utf-8"), lang)
     # The header carries the search box, so the partial slots in here once
     # rather than on every page render.
-    header = render(
+    header = localize(render(
         (TEMPLATES / "partials" / "header.html").read_text(encoding="utf-8"),
         {"search": (TEMPLATES / "partials" / "search.html").read_text(encoding="utf-8")},
-    )
-    footer = (TEMPLATES / "partials" / "footer.html").read_text(encoding="utf-8")
+    ), lang)
+    footer = localize((TEMPLATES / "partials" / "footer.html").read_text(encoding="utf-8"), lang)
     card_template = (TEMPLATES / "partials" / "card.html").read_text(encoding="utf-8")
 
     # Static goes first so every page can be rewritten to the hashed names.
@@ -419,12 +481,17 @@ def build():
             "description": description,
             "canonical_url": page_url(rel_path),
             "og_image": f"{SITE_URL}/static/images/og-default.png",
+            "lang": lang,
             "header": header,
             "content": content,
             "footer": footer,
         })
         for plain, hashed in asset_map.items():
             html = html.replace(plain, hashed)
+        # A leftover {{s.…}} means a template references a string key the
+        # registry doesn't define — fail rather than ship it to visitors.
+        if "{{s." in html:
+            fail(f"{rel_path}: unresolved chrome-string placeholder")
         out = DIST / rel_path
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(html, encoding="utf-8")
@@ -446,13 +513,14 @@ def build():
 
     # ---- projects and articles -------------------------------------------
     items = {section: load_items(section, vocab) for section in SECTIONS}
-    for section, cfg in SECTIONS.items():
-        type_template = (TEMPLATES / cfg["template"]).read_text(encoding="utf-8")
+    for section, template_name in SECTIONS.items():
+        type_template = localize(
+            (TEMPLATES / template_name).read_text(encoding="utf-8"), lang)
         for item in items[section]:
             content = render(type_template, {
                 "title": item["title"],
                 "date": item["date"],
-                "date_display": display_date(item["when"]),
+                "date_display": display_date(item["when"], lang),
                 "discipline": item["discipline"],
                 "discipline_url": f"/discipline/{item['discipline']}/",
                 "tech_list": tag_list_html(item["tech"]),
@@ -463,11 +531,12 @@ def build():
                  description=item["description"],
                  content=content, lastmod=item["date"])
 
+        index_title, lede = S[f"{section}_title"], S[f"{section}_lede"]
         emit(f"{section}/index.html",
-             title=f"{cfg['index_title']} — {SITE_NAME}",
-             description=cfg["lede"],
-             content=listing_body(cfg["index_title"], cfg["lede"],
-                                  items[section], card_template))
+             title=f"{index_title} — {SITE_NAME}",
+             description=lede,
+             content=listing_body(index_title, lede,
+                                  items[section], card_template, lang))
 
     # ---- tag pages (only for tags actually in use) -------------------------
     everything = sorted(items["projects"] + items["articles"],
@@ -475,17 +544,19 @@ def build():
 
     for d in sorted({i["discipline"] for i in everything}):
         tagged = [i for i in everything if i["discipline"] == d]
-        lede = f"Everything filed under the {d} discipline."
+        lede = S["discipline_lede"].format(tag=d)
         emit(f"discipline/{d}/index.html",
              title=f"{d.capitalize()} — {SITE_NAME}", description=lede,
-             content=listing_body(d.capitalize(), lede, tagged, card_template))
+             content=listing_body(d.capitalize(), lede, tagged,
+                                  card_template, lang))
 
     for t in sorted({t for i in everything for t in i["tech"]}):
         tagged = [i for i in everything if t in i["tech"]]
-        lede = f"Projects and articles tagged {t}."
+        lede = S["tech_lede"].format(tag=t)
         emit(f"tags/{t}/index.html",
              title=f"{t} — {SITE_NAME}", description=lede,
-             content=listing_body(f"Tagged “{t}”", lede, tagged, card_template))
+             content=listing_body(S["tech_heading"].format(tag=t), lede,
+                                  tagged, card_template, lang))
 
     # ---- search page --------------------------------------------------------
     # The chips are real links to the tag pages, so /search/ works without
@@ -497,31 +568,31 @@ def build():
             f' href="{prefix}{t}/">{t}</a></li>'
             for t in tags)
 
-    search_content = f"""<h1>Search</h1>
-<p class="lede">Find projects and articles by text, by tag, or both.</p>
+    search_content = f"""<h1>{S["search_title"]}</h1>
+<p class="lede">{S["search_lede"]}</p>
 <search-page>
-  <input type="search" placeholder="Search…" aria-label="Search projects and articles" autocomplete="off">
+  <input type="search" placeholder="{S["search_placeholder"]}" aria-label="{S["search_aria"]}" autocomplete="off">
   <div class="search-filters">
-    <span class="search-browse-label">Disciplines</span>
+    <span class="search-browse-label">{S["search_disciplines"]}</span>
     <ul class="search-tag-group">
 {tag_chips("discipline", sorted({i["discipline"] for i in everything}), "/discipline/")}
     </ul>
-    <span class="search-browse-label">Tech</span>
+    <span class="search-browse-label">{S["search_tech"]}</span>
     <ul class="search-tag-group">
 {tag_chips("tech", sorted({t for i in everything for t in i["tech"]}), "/tags/")}
     </ul>
     <fieldset class="search-mode">
-      <legend>Tag matching</legend>
-      <label><input type="radio" name="tag-mode" value="or" checked> any selected tag</label>
-      <label><input type="radio" name="tag-mode" value="and"> all selected tags</label>
+      <legend>{S["search_mode_legend"]}</legend>
+      <label><input type="radio" name="tag-mode" value="or" checked> {S["search_mode_or"]}</label>
+      <label><input type="radio" name="tag-mode" value="and"> {S["search_mode_and"]}</label>
     </fieldset>
   </div>
   <p class="search-count" aria-live="polite"></p>
   <ul class="search-results search-results--page"></ul>
 </search-page>"""
     emit("search/index.html",
-         title=f"Search — {SITE_NAME}",
-         description="Search projects and articles by text or filter by tag.",
+         title=f"{S['search_title']} — {SITE_NAME}",
+         description=S["search_description"],
          content=search_content)
 
     # ---- search index -------------------------------------------------------
@@ -533,7 +604,7 @@ def build():
     # ---- sitemap and RSS ----------------------------------------------------
     (DIST / "sitemap.xml").write_text(sitemap_xml(sitemap_entries), encoding="utf-8")
     print("wrote dist/sitemap.xml")
-    (DIST / "feed.xml").write_text(rss_xml(items["articles"]), encoding="utf-8")
+    (DIST / "feed.xml").write_text(rss_xml(items["articles"], lang), encoding="utf-8")
     print("wrote dist/feed.xml")
 
     check_internal_links(written)

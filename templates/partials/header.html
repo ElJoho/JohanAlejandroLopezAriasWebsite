@@ -1,14 +1,14 @@
 <header class="site-header">
   <div class="wrap site-header__inner">
     <a class="site-header__brand" href="/index.html">Johan Alejandro López Arias</a>
-    <nav class="site-nav" aria-label="Primary">
+    <nav class="site-nav" aria-label="{{s.nav_aria}}">
       <ul>
-        <li><a href="/index.html">Home</a></li>
-        <li><a href="/projects/">Projects</a></li>
-        <li><a href="/articles/">Articles</a></li>
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/contact.html">Contact</a></li>
-        <li><a href="/search/">Search</a></li>
+        <li><a href="/index.html">{{s.nav_home}}</a></li>
+        <li><a href="/projects/">{{s.nav_projects}}</a></li>
+        <li><a href="/articles/">{{s.nav_articles}}</a></li>
+        <li><a href="/about.html">{{s.nav_about}}</a></li>
+        <li><a href="/contact.html">{{s.nav_contact}}</a></li>
+        <li><a href="/search/">{{s.nav_search}}</a></li>
       </ul>
     </nav>
     {{search}}

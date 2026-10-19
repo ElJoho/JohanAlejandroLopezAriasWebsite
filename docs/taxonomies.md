@@ -30,3 +30,7 @@ numbers in tag names. To add a tag: add it here first, then use it.
 - cnc
 - arduino
 - esp32
+- autodesk-inventor
+- px4
+- gazebo
+- qgroundcontrol

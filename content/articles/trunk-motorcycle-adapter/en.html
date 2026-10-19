@@ -1,0 +1,145 @@
+---
+title: Designing a 3D-Printed Motorcycle Top-Case Adapter in FreeCAD
+description: Scanning two parts, calibrating them to true scale in FreeCAD, aligning their hole patterns, and lightening the adapter into a truss to fit a 300 g weight budget.
+date: 2026-10-18
+discipline: manufacturing
+tech: freecad, 3d-printing
+---
+<p>I recently bought a top case for my motorcycle and ran into two problems: my bike's rear rack doesn't use a standard hole pattern, and the top case's mounting base was poorly made (it came from Temu, so that was no great surprise). Neither part fit the other, so I designed a 3D-printed adapter in FreeCAD that bolts between them. This is the full process, from taking measurements to the final assembly.</p>
+
+<figure>
+  <img src="img/montajeFinal.webp" srcset="img/montajeFinal-700.webp 700w, img/montajeFinal.webp 1280w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1280" height="960" fetchpriority="high" alt="Black top case mounted on the back of a Suzuki motorcycle in a parking garage.">
+  <figcaption>The result: the top case mounted on the bike through the printed adapter.</figcaption>
+</figure>
+
+<h2>The weight budget</h2>
+<p>My bike's rear rack is rated for a 7 kg maximum load, according to the warning label stuck on it. The top case and its base weigh 4 kg, my helmet 1.2 kg, and what I usually carry inside — locks, reflective gear, tools — another 1.5 kg. That adds up to 6.7 kg, leaving the adapter at most <strong>300 g</strong>. That number drove every design decision.</p>
+
+<h2>Measuring two parts that were never meant to fit</h2>
+<p>To design the adapter I needed the geometry of two parts: the motorcycle's rack and the top-case base. Specifically, the position of every hole and slot.</p>
+
+<figure>
+  <img src="img/zonaParrilla.webp" srcset="img/zonaParrilla-700.webp 700w, img/zonaParrilla.webp 1152w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1152" height="1060" alt="The motorcycle's metal rear rack seen from above, with threaded holes, bolts, and a 7 kg maximum-load label." loading="lazy">
+  <figcaption>The motorcycle's rack, with its M6 threaded holes.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/scanBaseBaul.webp" srcset="img/scanBaseBaul-700.webp 700w, img/scanBaseBaul.webp 817w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="817" height="827" alt="Scan of the black top-case base, with diagonal slots in an X pattern and round holes." loading="lazy">
+  <figcaption>The top-case base and its slot pattern.</figcaption>
+</figure>
+
+<p>There are several ways to capture that geometry:</p>
+<ul>
+  <li><strong>Calipers and a sketch.</strong> Measure every hole and slot and transfer it to a sketch. Accurate, but slow, and with that many dimensions it's easy to make a mistake.</li>
+  <li><strong>Trace the part and scan the tracing.</strong> Works when the part is flat: trace the holes and outlines, scan the sheet, then calibrate the image in CAD.</li>
+  <li><strong>Take a photo.</strong> The fastest option, but perspective distorts the measurements depending on camera distance and angle, so it's no good for something that has to bolt together.</li>
+</ul>
+
+<p>For the rack I went with tracing: I taped parchment paper over it, marked the holes and outlines with markers, and then scanned the sheet.</p>
+
+<figure>
+  <img src="img/calcadoPapelPergamino.webp" srcset="img/calcadoPapelPergamino-700.webp 700w, img/calcadoPapelPergamino.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1792" alt="Parchment paper taped over the rack, with holes marked in green and raised features in blue." loading="lazy">
+  <figcaption>Tracing the rack onto parchment paper.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/escaneoParrilla.webp" srcset="img/escaneoParrilla-700.webp 700w, img/escaneoParrilla.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1580" alt="Scan of the rack tracing: green circles for holes and blue outlines for raised features." loading="lazy">
+  <figcaption>The scanned tracing, ready for FreeCAD.</figcaption>
+</figure>
+
+<p>For the top-case base I took a more direct route. Since it has a flat face, I laid it straight on the glass of my printer's scanner. A flatbed scanner has no perspective problem, so the image comes out at true scale and undistorted — no tracing needed.</p>
+
+<h2>Calibrating the images in FreeCAD</h2>
+<p>I imported both scans into FreeCAD and used its scale-calibration tool: mark a known distance on the image, tell FreeCAD its real length, and it rescales the image. Both images then sit at true size, and you can sketch directly on top of them, tracing every hole and slot.</p>
+
+<figure>
+  <img src="img/acercamientoScanBaseBaul.webp" width="485" height="465" alt="Close-up of the top-case base scan showing the pattern of slots and holes." loading="lazy">
+  <figcaption>The area of the top-case base I traced in FreeCAD.</figcaption>
+</figure>
+
+<h2>Aligning the two patterns</h2>
+<p>With one sketch per part, I kept one fixed and moved the other around on top of it. The goal was to get at least one or two of the rack's four M6 threaded holes lined up with slots in the base, so a bolt could pass straight through: top-case base, adapter, and rack.</p>
+<p>After moving the sketch around a little, I found a position where two of the bike's threaded holes lined up with two slots in the top-case base, and left it there.</p>
+
+<figure>
+  <img src="img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul.webp" srcset="img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul-700.webp 700w, img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1386" alt="Two overlaid sketches: the top-case base's slots and holes as dashed blue outlines, and the adapter's holes as black circles." loading="lazy">
+  <figcaption>The two sketches overlaid in their final position: dashed blue is the top-case base pattern; black is the adapter's holes.</figcaption>
+</figure>
+
+<h2>The base plate and its limits</h2>
+<p>The adapter starts as an extruded plate, and its footprint had three limits: the size of the rack, the size of the top-case base, and my printer's bed. Both the rack and the base are larger than the bed, so the printer set the limit: I started with a 19 × 19 cm square, big enough to cover everything needed and still inside the 21 × 21 cm print area.</p>
+
+<h2>Holes and captive nuts</h2>
+<p>I cut every bolt hole into the plate and then split them into two groups by function:</p>
+<ul>
+  <li><strong>Adapter → motorcycle.</strong> These bolts go into the rack's existing M6 threaded holes, so they need no nuts.</li>
+  <li><strong>Top-case base → adapter.</strong> These bolts pass through the top-case base and tighten into nuts captured in the adapter. For that I sketched each nut's size and cut hexagonal pockets that trap them. I only needed two sizes: M6 nuts and a single M10 nut.</li>
+</ul>
+
+<h2>Checking before printing</h2>
+<p>At this point I had a printable model, but I didn't print it yet. First I exported an STL and checked the print time and material in the slicer: 255 g and almost 7 hours. That fit within 300 g, but with very little margin, so I decided to remove material.</p>
+
+<figure>
+  <img src="img/stl1.webp" srcset="img/stl1-700.webp 700w, img/stl1.webp 1122w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1122" height="493" alt="Cura slicer screenshot of the adapter's first version: a solid plate with holes; estimate of 6 hours 52 minutes and 255 g." loading="lazy">
+  <figcaption>First version in the slicer: solid plate, 255 g and 6 h 52 min.</figcaption>
+</figure>
+
+<h2>Removing material: from plate to truss</h2>
+<p>Back in FreeCAD, I created a new sketch from projected geometry. Around each bolt hole I drew a concentric circle and extruded it, leaving a base of separate cylinders that protect each hole. I then joined those cylinders with straight bars, forming a kind of lattice or truss: material stays where the bolts are, and the rest of the plate disappears.</p>
+
+<figure>
+  <img src="img/3DmodelFreecad.webp" srcset="img/3DmodelFreecad-700.webp 700w, img/3DmodelFreecad.webp 853w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="853" height="500" alt="3D model of the adapter in FreeCAD: cylinders around each hole joined by a triangulated truss." loading="lazy">
+  <figcaption>The final model in FreeCAD, with the hexagonal nut pockets.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/modelo3DFreecadVistaFrontal.webp" width="457" height="706" alt="Another view of the adapter's 3D model in FreeCAD showing the truss and the larger central cylinder." loading="lazy">
+  <figcaption>Another view of the model; the large cylinder holds the M10 nut.</figcaption>
+</figure>
+
+<p>One detail: some bolts sit underneath the top-case base, and their heads need a recess so the base sits flat. Modeling that recess would have meant printing with supports that end up in the trash. It was faster to print the part completely flat and grind the recesses afterwards with a rotary tool.</p>
+
+<p>Re-slicing showed the difference clearly: the adapter dropped from 255 g to 221 g, filament from 85.47 m to 74.05 m, and print time from 6 h 52 min to 6 h 34 min.</p>
+
+<figure>
+  <img src="img/stlFinal.webp" srcset="img/stlFinal-700.webp 700w, img/stlFinal.webp 878w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="878" height="466" alt="Cura slicer screenshot of the adapter's final truss version; estimate of 6 hours 34 minutes and 221 g." loading="lazy">
+  <figcaption>Final version in the slicer: truss, 221 g and 6 h 34 min.</figcaption>
+</figure>
+
+<h2>Printing and assembly</h2>
+<p>I printed the adapter in PETG, ground the recesses with the rotary tool, and assembled it: first the adapter onto the rack, then the top-case base onto the adapter. The finished part weighs about <strong>220 g</strong>, 80 g under budget.</p>
+
+<figure>
+  <img src="img/mountedAdapter.webp" srcset="img/mountedAdapter-700.webp 700w, img/mountedAdapter.webp 960w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="960" height="1280" alt="Black 3D-printed truss-shaped adapter bolted onto the motorcycle's grey rack." loading="lazy">
+  <figcaption>The adapter bolted to the rack.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/baseBaulMontadaConAdaptador.webp" srcset="img/baseBaulMontadaConAdaptador-700.webp 700w, img/baseBaulMontadaConAdaptador.webp 909w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="909" height="819" alt="Black top-case base bolted onto the adapter, with bolts visible through its slots." loading="lazy">
+  <figcaption>The top-case base mounted on the adapter.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/baseBaulMontadaConAdaptadorVistaLateral.webp" srcset="img/baseBaulMontadaConAdaptadorVistaLateral-700.webp 700w, img/baseBaulMontadaConAdaptadorVistaLateral.webp 1280w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1280" height="960" alt="Side view of the assembly: rack at the bottom, adapter in the middle, top-case base on top." loading="lazy">
+  <figcaption>Side view: the adapter sits between the rack and the top-case base.</figcaption>
+</figure>
+
+<h2>Bill of materials</h2>
+<ul>
+  <li>221 g of PETG filament</li>
+  <li>11 × M6 × 40 mm round-head Phillips screws (top-case base → adapter)</li>
+  <li>11 × M6 nuts, captured in the adapter</li>
+  <li>4 × M6 flat-head hex-socket screws (adapter → motorcycle)</li>
+  <li>1 × M10 × 15 mm bolt</li>
+  <li>1 × M10 nut</li>
+</ul>
+
+<h3>Tools</h3>
+<ul>
+  <li>FreeCAD</li>
+  <li>Creality Ender 3 V2 3D printer</li>
+  <li>Rotary tool with sanding bit</li>
+  <li>Flatbed scanner, parchment paper, and markers</li>
+</ul>
+
+<p>If I had to keep just one idea from this project, it would be the scanner: for flat parts, it gives true-scale measurements with no calipers and no perspective error.</p>

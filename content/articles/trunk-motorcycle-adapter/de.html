@@ -1,0 +1,142 @@
+---
+title: Ein 3D-gedruckter Topcase-Adapter für mein Motorrad, konstruiert in FreeCAD
+description: Zwei Bauteile scannen, maßstabsgetreu in FreeCAD kalibrieren, ihre Lochbilder abgleichen und den Adapter zu einem Fachwerk erleichtern, um ein Gewichtsbudget von 300 g einzuhalten.
+---
+<p>Vor Kurzem habe ich mir ein Topcase für mein Motorrad gekauft und stand vor zwei Problemen: Der Gepäckträger meines Motorrads hat kein Standard-Lochbild, und die Grundplatte des Topcases war schlecht gefertigt (sie stammte von Temu, also keine große Überraschung). Keines der beiden Teile passte zum anderen, also habe ich in FreeCAD einen 3D-gedruckten Adapter konstruiert, der zwischen beide geschraubt wird. Hier beschreibe ich den gesamten Ablauf, vom Maßnehmen bis zur Endmontage.</p>
+
+<figure>
+  <img src="img/montajeFinal.webp" srcset="img/montajeFinal-700.webp 700w, img/montajeFinal.webp 1280w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1280" height="960" fetchpriority="high" alt="Schwarzes Topcase, montiert auf dem Heck eines Suzuki-Motorrads in einer Tiefgarage.">
+  <figcaption>Das Ergebnis: das Topcase, über den gedruckten Adapter am Motorrad montiert.</figcaption>
+</figure>
+
+<h2>Das Gewichtsbudget</h2>
+<p>Der Gepäckträger meines Motorrads ist laut dem aufgeklebten Warnschild für maximal 7 kg ausgelegt. Topcase und Grundplatte wiegen 4 kg, mein Helm 1,2 kg, und was ich üblicherweise darin transportiere – Schlösser, Warnkleidung, Werkzeug – weitere 1,5 kg. Das ergibt 6,7 kg, sodass für den Adapter höchstens <strong>300 g</strong> übrig blieben. Diese Zahl bestimmte jede Konstruktionsentscheidung.</p>
+
+<h2>Zwei Teile vermessen, die nie zusammenpassen sollten</h2>
+<p>Für die Konstruktion des Adapters brauchte ich die Geometrie zweier Teile: des Gepäckträgers und der Topcase-Grundplatte – genauer gesagt die Lage jedes Lochs und jedes Langlochs.</p>
+
+<figure>
+  <img src="img/zonaParrilla.webp" srcset="img/zonaParrilla-700.webp 700w, img/zonaParrilla.webp 1152w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1152" height="1060" alt="Der metallene Gepäckträger des Motorrads von oben, mit Gewindebohrungen, Schrauben und einem Schild für maximal 7 kg Zuladung." loading="lazy">
+  <figcaption>Der Gepäckträger des Motorrads mit seinen M6-Gewindebohrungen.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/scanBaseBaul.webp" srcset="img/scanBaseBaul-700.webp 700w, img/scanBaseBaul.webp 817w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="817" height="827" alt="Scan der schwarzen Topcase-Grundplatte mit diagonalen Langlöchern in X-Form und runden Löchern." loading="lazy">
+  <figcaption>Die Topcase-Grundplatte und ihr Langlochmuster.</figcaption>
+</figure>
+
+<p>Es gibt mehrere Möglichkeiten, diese Geometrie zu erfassen:</p>
+<ul>
+  <li><strong>Messschieber und Skizze.</strong> Jedes Loch und Langloch vermessen und in eine Skizze übertragen. Genau, aber langsam – und bei so vielen Maßen schleicht sich leicht ein Fehler ein.</li>
+  <li><strong>Das Teil abpausen und die Pause scannen.</strong> Funktioniert bei flachen Teilen: Löcher und Konturen abpausen, das Blatt scannen und das Bild anschließend im CAD kalibrieren.</li>
+  <li><strong>Ein Foto machen.</strong> Die schnellste Variante, aber die Perspektive verzerrt die Maße je nach Abstand und Winkel der Kamera – für etwas, das verschraubt werden muss, ist das unbrauchbar.</li>
+</ul>
+
+<p>Für den Gepäckträger habe ich die Pause gewählt: Ich habe Pergamentpapier mit Klebeband darauf fixiert, Löcher und Konturen mit Markern angezeichnet und das Blatt danach gescannt.</p>
+
+<figure>
+  <img src="img/calcadoPapelPergamino.webp" srcset="img/calcadoPapelPergamino-700.webp 700w, img/calcadoPapelPergamino.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1792" alt="Pergamentpapier mit Klebeband auf dem Gepäckträger, Löcher grün und erhabene Formen blau markiert." loading="lazy">
+  <figcaption>Abpausen des Gepäckträgers auf Pergamentpapier.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/escaneoParrilla.webp" srcset="img/escaneoParrilla-700.webp 700w, img/escaneoParrilla.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1580" alt="Scan der Pause des Gepäckträgers: grüne Kreise für die Löcher, blaue Umrisse für die erhabenen Formen." loading="lazy">
+  <figcaption>Die gescannte Pause, bereit für FreeCAD.</figcaption>
+</figure>
+
+<p>Bei der Topcase-Grundplatte bin ich direkter vorgegangen. Da sie eine ebene Seite hat, habe ich sie einfach auf das Glas des Druckerscanners gelegt. Ein Flachbettscanner kennt kein Perspektivproblem, daher ist das Bild maßstabsgetreu und unverzerrt – ganz ohne Pause.</p>
+
+<h2>Die Bilder in FreeCAD kalibrieren</h2>
+<p>Ich habe beide Scans in FreeCAD importiert und das Werkzeug zur Maßstabskalibrierung verwendet: Man markiert auf dem Bild eine bekannte Strecke, gibt ihre tatsächliche Länge an, und FreeCAD skaliert das Bild entsprechend. Danach liegen beide Bilder in Originalgröße vor, und man kann direkt darauf skizzieren und jedes Loch und Langloch nachzeichnen.</p>
+
+<figure>
+  <img src="img/acercamientoScanBaseBaul.webp" width="485" height="465" alt="Nahaufnahme des Scans der Topcase-Grundplatte mit dem Muster aus Langlöchern und Löchern." loading="lazy">
+  <figcaption>Der Bereich der Topcase-Grundplatte, den ich in FreeCAD nachgezeichnet habe.</figcaption>
+</figure>
+
+<h2>Die beiden Lochbilder abgleichen</h2>
+<p>Mit je einer Skizze pro Teil habe ich eine fixiert und die andere darüber verschoben. Ziel war, mindestens eine oder zwei der vier M6-Gewindebohrungen des Gepäckträgers mit Langlöchern der Grundplatte in Deckung zu bringen, sodass eine Schraube ganz hindurchgehen kann: Topcase-Grundplatte, Adapter und Gepäckträger.</p>
+<p>Nach ein wenig Verschieben fand ich eine Position, in der zwei der Gewindebohrungen des Motorrads mit zwei Langlöchern der Topcase-Grundplatte übereinstimmten, und dort habe ich die Skizze belassen.</p>
+
+<figure>
+  <img src="img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul.webp" srcset="img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul-700.webp 700w, img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1386" alt="Zwei überlagerte Skizzen: Langlöcher und Löcher der Topcase-Grundplatte als blau gestrichelte Umrisse, die Löcher des Adapters als schwarze Kreise." loading="lazy">
+  <figcaption>Die beiden Skizzen in ihrer endgültigen Lage: blau gestrichelt das Muster der Topcase-Grundplatte, schwarz die Löcher des Adapters.</figcaption>
+</figure>
+
+<h2>Die Grundplatte und ihre Grenzen</h2>
+<p>Der Adapter beginnt als extrudierte Platte, und ihre Fläche hatte drei Grenzen: die Größe des Gepäckträgers, die Größe der Topcase-Grundplatte und das Druckbett meines Druckers. Gepäckträger und Grundplatte sind beide größer als das Druckbett, also gab der Drucker die Grenze vor: Ich habe mit einem Quadrat von 19 × 19 cm begonnen – groß genug, um alles Nötige abzudecken, und trotzdem innerhalb der Druckfläche von 21 × 21 cm.</p>
+
+<h2>Löcher und eingelassene Muttern</h2>
+<p>Ich habe alle Schraubenlöcher in die Platte geschnitten und sie anschließend nach ihrer Funktion in zwei Gruppen eingeteilt:</p>
+<ul>
+  <li><strong>Adapter → Motorrad.</strong> Diese Schrauben greifen in die vorhandenen M6-Gewindebohrungen des Gepäckträgers und brauchen daher keine Muttern.</li>
+  <li><strong>Topcase-Grundplatte → Adapter.</strong> Diese Schrauben führen durch die Topcase-Grundplatte und werden in Muttern angezogen, die im Adapter eingelassen sind. Dafür habe ich die Größe jeder Mutter skizziert und sechseckige Taschen ausgeschnitten, in denen sie festsitzen. Ich brauchte nur zwei Größen: M6-Muttern und eine einzige M10-Mutter.</li>
+</ul>
+
+<h2>Prüfen vor dem Drucken</h2>
+<p>An diesem Punkt hatte ich ein druckbares Modell, habe es aber noch nicht gedruckt. Zuerst habe ich eine STL exportiert und im Slicer Druckzeit und Materialverbrauch geprüft: 255 g und fast 7 Stunden. Das lag zwar innerhalb der 300 g, aber mit sehr wenig Spielraum, also habe ich beschlossen, Material zu entfernen.</p>
+
+<figure>
+  <img src="img/stl1.webp" srcset="img/stl1-700.webp 700w, img/stl1.webp 1122w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1122" height="493" alt="Screenshot des Slicers Cura mit der ersten Version des Adapters: eine massive Platte mit Löchern; Schätzung 6 Stunden 52 Minuten und 255 g." loading="lazy">
+  <figcaption>Erste Version im Slicer: massive Platte, 255 g und 6 h 52 min.</figcaption>
+</figure>
+
+<h2>Material entfernen: von der Platte zum Fachwerk</h2>
+<p>Zurück in FreeCAD habe ich eine neue Skizze aus projizierter Geometrie erstellt. Um jedes Schraubenloch habe ich einen konzentrischen Kreis gezeichnet und extrudiert, wodurch eine Basis aus einzelnen Zylindern entstand, die jedes Loch einfassen. Diese Zylinder habe ich dann mit geraden Streben verbunden und so eine Art Gitter oder Fachwerk gebildet: Das Material bleibt dort, wo die Schrauben sitzen, und der Rest der Platte verschwindet.</p>
+
+<figure>
+  <img src="img/3DmodelFreecad.webp" srcset="img/3DmodelFreecad-700.webp 700w, img/3DmodelFreecad.webp 853w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="853" height="500" alt="3D-Modell des Adapters in FreeCAD: Zylinder um jedes Loch, verbunden durch ein trianguliertes Fachwerk." loading="lazy">
+  <figcaption>Das endgültige Modell in FreeCAD mit den sechseckigen Muttertaschen.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/modelo3DFreecadVistaFrontal.webp" width="457" height="706" alt="Eine weitere Ansicht des 3D-Modells des Adapters in FreeCAD mit dem Fachwerk und dem größeren mittleren Zylinder." loading="lazy">
+  <figcaption>Eine weitere Ansicht des Modells; der große Zylinder nimmt die M10-Mutter auf.</figcaption>
+</figure>
+
+<p>Ein Detail: Einige Schrauben liegen unterhalb der Topcase-Grundplatte, und ihre Köpfe brauchen eine Vertiefung, damit die Grundplatte plan aufliegt. Diese Vertiefung zu modellieren hätte einen Druck mit Stützstrukturen erfordert, die anschließend im Müll landen. Schneller war es, das Teil komplett flach zu drucken und die Vertiefungen danach mit einem Multifunktionswerkzeug auszuschleifen.</p>
+
+<p>Der erneute Slicer-Durchlauf zeigte den Unterschied deutlich: Der Adapter sank von 255 g auf 221 g, das Filament von 85,47 m auf 74,05 m und die Druckzeit von 6 h 52 min auf 6 h 34 min.</p>
+
+<figure>
+  <img src="img/stlFinal.webp" srcset="img/stlFinal-700.webp 700w, img/stlFinal.webp 878w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="878" height="466" alt="Screenshot des Slicers Cura mit der endgültigen Fachwerk-Version des Adapters; Schätzung 6 Stunden 34 Minuten und 221 g." loading="lazy">
+  <figcaption>Endgültige Version im Slicer: Fachwerk, 221 g und 6 h 34 min.</figcaption>
+</figure>
+
+<h2>Druck und Montage</h2>
+<p>Ich habe den Adapter in PETG gedruckt, die Vertiefungen mit dem Multifunktionswerkzeug ausgeschliffen und alles montiert: zuerst den Adapter auf den Gepäckträger, dann die Topcase-Grundplatte auf den Adapter. Das fertige Teil wiegt etwa <strong>220 g</strong>, 80 g unter dem Budget.</p>
+
+<figure>
+  <img src="img/mountedAdapter.webp" srcset="img/mountedAdapter-700.webp 700w, img/mountedAdapter.webp 960w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="960" height="1280" alt="Schwarzer, 3D-gedruckter Adapter in Fachwerkform, auf den grauen Gepäckträger des Motorrads geschraubt." loading="lazy">
+  <figcaption>Der Adapter, auf den Gepäckträger geschraubt.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/baseBaulMontadaConAdaptador.webp" srcset="img/baseBaulMontadaConAdaptador-700.webp 700w, img/baseBaulMontadaConAdaptador.webp 909w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="909" height="819" alt="Schwarze Topcase-Grundplatte, auf den Adapter geschraubt, mit durch ihre Langlöcher sichtbaren Schrauben." loading="lazy">
+  <figcaption>Die Topcase-Grundplatte, auf dem Adapter montiert.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/baseBaulMontadaConAdaptadorVistaLateral.webp" srcset="img/baseBaulMontadaConAdaptadorVistaLateral-700.webp 700w, img/baseBaulMontadaConAdaptadorVistaLateral.webp 1280w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1280" height="960" alt="Seitenansicht der Baugruppe: unten der Gepäckträger, in der Mitte der Adapter, oben die Topcase-Grundplatte." loading="lazy">
+  <figcaption>Seitenansicht: Der Adapter sitzt zwischen Gepäckträger und Topcase-Grundplatte.</figcaption>
+</figure>
+
+<h2>Stückliste</h2>
+<ul>
+  <li>221 g PETG-Filament</li>
+  <li>11 × M6 × 40 mm Linsenkopfschrauben mit Kreuzschlitz (Topcase-Grundplatte → Adapter)</li>
+  <li>11 × M6-Muttern, im Adapter eingelassen</li>
+  <li>4 × M6-Senkkopfschrauben mit Innensechskant (Adapter → Motorrad)</li>
+  <li>1 × M10 × 15 mm Schraube</li>
+  <li>1 × M10-Mutter</li>
+</ul>
+
+<h3>Werkzeuge</h3>
+<ul>
+  <li>FreeCAD</li>
+  <li>3D-Drucker Creality Ender 3 V2</li>
+  <li>Multifunktionswerkzeug mit Schleifaufsatz</li>
+  <li>Flachbettscanner, Pergamentpapier und Marker</li>
+</ul>
+
+<p>Wenn ich nur eine Idee aus diesem Projekt mitnehmen dürfte, wäre es der Scanner: Bei flachen Teilen liefert er maßstabsgetreue Maße – ohne Messschieber und ohne Perspektivfehler.</p>

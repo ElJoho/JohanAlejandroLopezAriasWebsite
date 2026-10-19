@@ -1,0 +1,142 @@
+---
+title: Cómo diseñé en FreeCAD un adaptador impreso en 3D para el baúl de mi moto
+description: Escanear dos piezas, calibrarlas a escala real en FreeCAD, alinear sus patrones de agujeros y aligerar el adaptador con una cercha para que cupiera en un presupuesto de 300 g.
+---
+<p>Hace poco le compré un baúl a mi moto y me encontré con dos problemas: la parrilla de mi moto no tiene un patrón de agujeros estándar, y la base del baúl venía mal fabricada (la compré en Temu, así que no fue una gran sorpresa). Ninguna de las dos piezas encajaba con la otra, así que diseñé en FreeCAD un adaptador impreso en 3D que se atornilla entre ambas. Aquí cuento el proceso completo, desde tomar las medidas hasta el montaje final.</p>
+
+<figure>
+  <img src="img/montajeFinal.webp" srcset="img/montajeFinal-700.webp 700w, img/montajeFinal.webp 1280w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1280" height="960" fetchpriority="high" alt="Baúl negro montado sobre la parte trasera de una motocicleta Suzuki en un parqueadero.">
+  <figcaption>El resultado: el baúl montado en la moto a través del adaptador impreso.</figcaption>
+</figure>
+
+<h2>El presupuesto de peso</h2>
+<p>La parrilla de mi moto admite una carga máxima de 7 kg, según la etiqueta de advertencia que trae pegada. El baúl con su base pesa 4 kg, mi casco 1,2 kg y lo que suelo llevar adentro —candados, prendas reflectivas, herramientas— otros 1,5 kg. Eso suma 6,7 kg, así que al adaptador le quedaban como máximo <strong>300 g</strong>. Ese número guió todas las decisiones de diseño.</p>
+
+<h2>Medir dos piezas que no se hicieron para encajar</h2>
+<p>Para diseñar el adaptador necesitaba la geometría de dos piezas: la parrilla de la moto y la base del baúl. En concreto, la posición de cada agujero y cada ranura.</p>
+
+<figure>
+  <img src="img/zonaParrilla.webp" srcset="img/zonaParrilla-700.webp 700w, img/zonaParrilla.webp 1152w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1152" height="1060" alt="Parrilla trasera metálica de la moto vista desde arriba, con agujeros roscados, tornillos y la etiqueta de carga máxima de 7 kg." loading="lazy">
+  <figcaption>La parrilla de la moto, con sus agujeros roscados M6.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/scanBaseBaul.webp" srcset="img/scanBaseBaul-700.webp 700w, img/scanBaseBaul.webp 817w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="817" height="827" alt="Escaneo de la base negra del baúl, con ranuras diagonales en forma de X y agujeros redondos." loading="lazy">
+  <figcaption>La base del baúl y su patrón de ranuras.</figcaption>
+</figure>
+
+<p>Hay varias formas de capturar esa geometría:</p>
+<ul>
+  <li><strong>Calibrador pie de rey y boceto.</strong> Se mide cada agujero y ranura y se pasa a un boceto. Es preciso, pero lento, y con tantas cotas es fácil equivocarse.</li>
+  <li><strong>Calcar la pieza y escanear el calco.</strong> Funciona si la pieza es plana: se calcan los agujeros y contornos, se escanea la hoja y luego se calibra la imagen en el CAD.</li>
+  <li><strong>Tomarle una foto.</strong> Es lo más rápido, pero la perspectiva distorsiona las medidas según la distancia y el ángulo de la cámara, así que no sirve para algo que tiene que atornillarse.</li>
+</ul>
+
+<p>Para la parrilla usé el calco: pegué papel pergamino con cinta sobre la parrilla, marqué los agujeros y los contornos con marcador y después escaneé la hoja.</p>
+
+<figure>
+  <img src="img/calcadoPapelPergamino.webp" srcset="img/calcadoPapelPergamino-700.webp 700w, img/calcadoPapelPergamino.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1792" alt="Papel pergamino pegado con cinta sobre la parrilla, con los agujeros marcados en verde y los relieves en azul." loading="lazy">
+  <figcaption>Calcando la parrilla sobre papel pergamino.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/escaneoParrilla.webp" srcset="img/escaneoParrilla-700.webp 700w, img/escaneoParrilla.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1580" alt="Escaneo del calco de la parrilla: círculos verdes para los agujeros y contornos azules para los relieves." loading="lazy">
+  <figcaption>El calco escaneado, listo para llevarlo a FreeCAD.</figcaption>
+</figure>
+
+<p>Con la base del baúl fui más directo. Como tiene una cara plana, la puse sobre el vidrio del escáner de la impresora. Un escáner plano no tiene problemas de perspectiva, así que la imagen sale a escala real y sin distorsión, sin calco de por medio.</p>
+
+<h2>Calibrar las imágenes en FreeCAD</h2>
+<p>Importé las dos imágenes escaneadas en FreeCAD y usé su herramienta de calibración de escala: se marca sobre la imagen una distancia conocida, se le indica cuánto mide en realidad y FreeCAD reescala la imagen. Así ambas quedan a tamaño real y se puede bocetar directamente encima, calcando cada agujero y cada ranura.</p>
+
+<figure>
+  <img src="img/acercamientoScanBaseBaul.webp" width="485" height="465" alt="Acercamiento del escaneo de la base del baúl mostrando el patrón de ranuras y agujeros." loading="lazy">
+  <figcaption>La zona de la base del baúl que calqué en FreeCAD.</figcaption>
+</figure>
+
+<h2>Alinear los dos patrones</h2>
+<p>Con un boceto por pieza, dejé uno fijo y empecé a mover el otro encima. El objetivo era que al menos uno o dos de los cuatro agujeros roscados M6 de la parrilla quedaran alineados con ranuras de la base, de modo que un tornillo pudiera pasar de lado a lado: base del baúl, adaptador y parrilla.</p>
+<p>Después de mover un poco el boceto encontré una posición en la que dos de los agujeros roscados de la moto coincidían con dos ranuras de la base del baúl, y lo dejé ahí.</p>
+
+<figure>
+  <img src="img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul.webp" srcset="img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul-700.webp 700w, img/empalmeParrillaPlacaSimplificado_layoutPlacaBaul.webp 1344w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1344" height="1386" alt="Dos bocetos superpuestos: ranuras y agujeros de la base del baúl en azul punteado y los agujeros del adaptador como círculos negros." loading="lazy">
+  <figcaption>Los dos bocetos superpuestos en la posición final: en azul punteado, el patrón de la base del baúl; en negro, los agujeros del adaptador.</figcaption>
+</figure>
+
+<h2>La placa base y sus límites</h2>
+<p>El adaptador parte de una placa extruida, y su área tenía tres límites: el tamaño de la parrilla, el de la base del baúl y la cama de mi impresora. Tanto la parrilla como la base son más grandes que la cama, así que mandaba la impresora: empecé con un cuadrado de 19 × 19 cm, lo bastante grande para cubrir todo lo necesario y todavía dentro del área de impresión de 21 × 21 cm.</p>
+
+<h2>Agujeros y tuercas embebidas</h2>
+<p>Sobre la placa vacié todos los agujeros de tornillos y los separé en dos grupos según su función:</p>
+<ul>
+  <li><strong>Adaptador → moto.</strong> Estos tornillos van a los agujeros roscados M6 que ya trae la parrilla, así que no necesitan tuerca.</li>
+  <li><strong>Base del baúl → adaptador.</strong> Estos tornillos atraviesan la base del baúl y se aprietan contra tuercas embebidas en el adaptador. Para eso hice un boceto con la medida de cada tuerca y vacié alojamientos hexagonales donde quedan atrapadas. Solo usé dos tamaños: tuercas M6 y una única tuerca M10.</li>
+</ul>
+
+<h2>Revisar antes de imprimir</h2>
+<p>En este punto ya tenía un modelo imprimible, pero todavía no lo imprimí. Primero exporté un STL y revisé en el laminador el tiempo de impresión y el material: 255 g y casi 7 horas. Cabía en los 300 g, pero con muy poco margen, así que decidí quitarle material.</p>
+
+<figure>
+  <img src="img/stl1.webp" srcset="img/stl1-700.webp 700w, img/stl1.webp 1122w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1122" height="493" alt="Captura del laminador Cura con la primera versión del adaptador: una placa sólida con agujeros; estimado de 6 horas 52 minutos y 255 g." loading="lazy">
+  <figcaption>Primera versión en el laminador: placa sólida, 255 g y 6 h 52 min.</figcaption>
+</figure>
+
+<h2>Quitar material: de placa a cercha</h2>
+<p>Volví a FreeCAD y creé un boceto nuevo a partir de la geometría proyectada. Alrededor de cada agujero de tornillo dibujé un círculo concéntrico y lo extruí, lo que dejó una base de cilindros sueltos que protegen cada agujero. Luego uní esos cilindros con barras rectas y formé una especie de rejilla o cercha: el material queda donde están los tornillos y desaparece el resto de la placa.</p>
+
+<figure>
+  <img src="img/3DmodelFreecad.webp" srcset="img/3DmodelFreecad-700.webp 700w, img/3DmodelFreecad.webp 853w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="853" height="500" alt="Modelo 3D del adaptador en FreeCAD: cilindros alrededor de cada agujero unidos por una cercha triangulada." loading="lazy">
+  <figcaption>El modelo final en FreeCAD, con los alojamientos hexagonales de las tuercas.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/modelo3DFreecadVistaFrontal.webp" width="457" height="706" alt="Otra vista del modelo 3D del adaptador en FreeCAD mostrando la cercha y el cilindro central más grande." loading="lazy">
+  <figcaption>Otra vista del modelo; el cilindro grande aloja la tuerca M10.</figcaption>
+</figure>
+
+<p>Un detalle: algunos tornillos quedan por debajo de la base del baúl y sus cabezas necesitan un rebaje para que la base asiente plana. Modelar ese rebaje habría obligado a imprimir con soportes, que después se botan. Era más rápido imprimir la pieza completamente plana y desbastar los rebajes después con el mototool.</p>
+
+<p>Al volver a laminar, la diferencia fue clara: el adaptador bajó de 255 g a 221 g, el filamento de 85,47 m a 74,05 m y el tiempo de impresión de 6 h 52 min a 6 h 34 min.</p>
+
+<figure>
+  <img src="img/stlFinal.webp" srcset="img/stlFinal-700.webp 700w, img/stlFinal.webp 878w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="878" height="466" alt="Captura del laminador Cura con la versión final del adaptador en forma de cercha; estimado de 6 horas 34 minutos y 221 g." loading="lazy">
+  <figcaption>Versión final en el laminador: cercha, 221 g y 6 h 34 min.</figcaption>
+</figure>
+
+<h2>Impresión y montaje</h2>
+<p>Imprimí el adaptador en PETG, hice los rebajes con el mototool y lo monté: primero el adaptador sobre la parrilla y luego la base del baúl sobre el adaptador. La pieza final pesa unos <strong>220 g</strong>, 80 g por debajo del presupuesto.</p>
+
+<figure>
+  <img src="img/mountedAdapter.webp" srcset="img/mountedAdapter-700.webp 700w, img/mountedAdapter.webp 960w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="960" height="1280" alt="Adaptador negro impreso en 3D, con forma de cercha, atornillado sobre la parrilla gris de la moto." loading="lazy">
+  <figcaption>El adaptador atornillado a la parrilla.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/baseBaulMontadaConAdaptador.webp" srcset="img/baseBaulMontadaConAdaptador-700.webp 700w, img/baseBaulMontadaConAdaptador.webp 909w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="909" height="819" alt="Base negra del baúl atornillada sobre el adaptador, con tornillos visibles a través de sus ranuras." loading="lazy">
+  <figcaption>La base del baúl montada sobre el adaptador.</figcaption>
+</figure>
+
+<figure>
+  <img src="img/baseBaulMontadaConAdaptadorVistaLateral.webp" srcset="img/baseBaulMontadaConAdaptadorVistaLateral-700.webp 700w, img/baseBaulMontadaConAdaptadorVistaLateral.webp 1280w" sizes="(max-width: 42rem) calc(100vw - 2rem), 40rem" width="1280" height="960" alt="Vista lateral del conjunto: la parrilla abajo, el adaptador en el medio y la base del baúl arriba." loading="lazy">
+  <figcaption>Vista lateral: el adaptador queda entre la parrilla y la base del baúl.</figcaption>
+</figure>
+
+<h2>Lista de materiales</h2>
+<ul>
+  <li>221 g de filamento PETG</li>
+  <li>11 tornillos M6 × 40 mm de cabeza redonda y ranura en cruz (base del baúl → adaptador)</li>
+  <li>11 tuercas M6, embebidas en el adaptador</li>
+  <li>4 tornillos M6 de cabeza plana con hexágono interno (adaptador → moto)</li>
+  <li>1 tornillo M10 × 15 mm</li>
+  <li>1 tuerca M10</li>
+</ul>
+
+<h3>Herramientas</h3>
+<ul>
+  <li>FreeCAD</li>
+  <li>Impresora 3D Creality Ender 3 V2</li>
+  <li>Mototool con lija</li>
+  <li>Escáner plano, papel pergamino y marcadores</li>
+</ul>
+
+<p>Si tuviera que quedarme con una sola idea de este proyecto, sería la del escáner: para piezas planas da medidas a escala real sin calibrador y sin errores de perspectiva.</p>
